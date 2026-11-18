@@ -68,10 +68,10 @@
 
 **Goal**: 在真实宿主上验证中英文切换与停用状态，并完成发布内容核对。
 
-- [ ] T024 按 `real-device-test` skill 启动宿主，在中英文下核对插件行标题与描述，停用后再核对一次
-- [ ] T025 写入 `specs/013-template-sync/rdt-report.md`：宿主版本、核对步骤、中英文与停用状态的截图或文本、结论
-- [ ] T026 运行 `pnpm format && pnpm full-check` 与 `npm pack --dry-run --json`，核对进包表与 `contracts/package-manifest.md` 一致
-- [ ] T027 本阶段提交：`test(013): 实机核对与发布内容检查`
+- [X] T024 按 `real-device-test` skill 启动宿主，在中英文下核对插件行标题与描述，停用后再核对一次
+- [X] T025 写入 `specs/013-template-sync/rdt-report.md`：宿主版本、核对步骤、中英文与停用状态的截图或文本、结论
+- [X] T026 运行 `pnpm format && pnpm full-check` 与 `npm pack --dry-run --json`，核对进包表与 `contracts/package-manifest.md` 一致
+- [X] T027 本阶段提交：`test(013): 实机核对与发布内容检查`
 
 ---
 
