@@ -28,7 +28,7 @@ function makeRecord(id: string, parentId?: string): SessionRecordLike {
     header: {
       id,
       createdAt: 1,
-      ...(parentId === undefined ? {} : { parentSession: { id: parentId } }),
+      ...(parentId === undefined ? {} : { parentSession: parentId }),
     },
     live: false,
     persisted: true,
@@ -42,7 +42,7 @@ function makeLog(id: string, options: { version?: number; parentId?: string } = 
     version: options.version ?? 2,
     createdAt: 1000,
     cwd: 'D:\\app',
-    ...(options.parentId === undefined ? {} : { parentSession: { id: options.parentId } }),
+    ...(options.parentId === undefined ? {} : { parentSession: options.parentId }),
     isSeeded: false,
     delegationDepth: options.parentId === undefined ? 0 : 1,
   };
