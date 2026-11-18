@@ -221,7 +221,7 @@ exported session session-1 to <directory>
 | --- | --- | --- | --- |
 | `session_id` | string | 是 | Session that receives the reminder. |
 | `text` | string | 是 | Reminder text; wrapped in a system-reminder frame. |
-| `mode` | string enum `queue` / `steer` | 否 | Delivery timing. queue waits for the next turn; steer targets the nearest step. Defaults to queue. |
+| `mode` | string enum `queue` / `steer` | 否 | Delivery timing. queue waits for the next turn; steer targets the nearest step. Subagent delivery queues the reminder. Defaults to queue. |
 
 **Returns**: `{ delivered: true, sessionId, mode }`；渲染 `system reminder delivered to session <id> (mode)`。
 

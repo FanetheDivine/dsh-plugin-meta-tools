@@ -12,6 +12,7 @@ import type {
   SessionControllerLike,
   SessionCreateRequestLike,
   SessionPromptRequestLike,
+  SubagentsLike,
   WorkspaceRegistryLike,
 } from '../src/types.ts';
 
@@ -65,6 +66,17 @@ function execWith(cwd?: string) {
 
 /** 默认执行上下文。 */
 const exec = execWith();
+
+/** 带子代理路由服务的调用方。 */
+function execWithSubagents(subagents: SubagentsLike) {
+  return {
+    signal: new AbortController().signal,
+    agent: {
+      session: { id: 'caller' },
+      ctx: { get: (name: string) => (name === 'subagents' ? subagents : undefined) },
+    },
+  } as never;
+}
 
 describe('session_create', () => {
   it('按位置、预设、标题与首条消息创建会话', async () => {
@@ -150,6 +162,21 @@ describe('session_stop', () => {
       "Could not stop session 's1': offline",
     );
   });
+
+  it('subagent 会话走 interrupt 路由', async () => {
+    const { controller, cancel } = makeController();
+    cancel.mockImplementationOnce(() => {
+      throw new Error('session "s1" is owned by subagent routing');
+    });
+    const interrupt = vi.fn();
+    const tool = buildSessionStopTool({ sessionController: controller });
+    const exec = execWithSubagents({ interrupt, sendMessage: vi.fn() });
+    await tool.execute({ session_id: 's1' }, exec);
+    expect(interrupt).toHaveBeenCalledWith('s1', {
+      kind: 'ancestor',
+      agent: (exec as { agent: unknown }).agent,
+    });
+  });
 });
 
 describe('session_send', () => {
@@ -172,6 +199,24 @@ describe('session_send', () => {
     const text = prompt.mock.calls[0]?.[0]?.content[0]?.text ?? '';
     expect(text).toContain('<\\/system-reminder>');
     expect(text.match(/<\/system-reminder>/g)).toHaveLength(1);
+  });
+
+  it('subagent 会话走 sendMessage 路由并排队投递', async () => {
+    const { controller, prompt } = makeController();
+    prompt.mockRejectedValueOnce(new Error('session "s1" is owned by subagent routing'));
+    const sendMessage = vi.fn(async () => 'message-1');
+    const tool = buildSessionSendTool({ sessionController: controller });
+    const exec = execWithSubagents({ interrupt: vi.fn(), sendMessage });
+    const value = (await tool.execute(
+      { session_id: 's1', text: 'reminder', mode: 'steer' },
+      exec,
+    )) as { mode: string };
+    expect(value.mode).toBe('queue');
+    const call = sendMessage.mock.calls[0] as unknown[];
+    expect(call[1]).toBe('s1');
+    expect(call[2]).toEqual([
+      { type: 'text', text: '<system-reminder>\nreminder\n</system-reminder>' },
+    ]);
   });
 
   it('空文本报错', async () => {

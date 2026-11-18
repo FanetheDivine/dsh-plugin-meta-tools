@@ -7,7 +7,9 @@ import { randomUUID } from 'node:crypto';
 import { defineTool, ToolArgsError } from '@deepseek-ai/dsh-tools';
 
 import type {
+  Agent,
   SessionControllerLike,
+  SubagentsLike,
   ToolDefinition,
   ToolJsonValue,
   WorkspaceRegistryLike,
@@ -70,6 +72,16 @@ function messageOf(error: unknown): string {
 export function systemReminder(text: string): string {
   const escaped = text.trim().replaceAll('</system-reminder>', '<\\/system-reminder>');
   return `<system-reminder>\n${escaped}\n</system-reminder>`;
+}
+
+/** 宿主把 subagent 会话交给独立的子代理路由。 */
+function isSubagentRouting(error: unknown): boolean {
+  return messageOf(error).toLowerCase().includes('subagent routing');
+}
+
+/** 从调用方 Agent 的上下文读取可选的子代理路由服务。 */
+function subagentsOf(agent: Agent | undefined): SubagentsLike | undefined {
+  return agent?.ctx.get('subagents') as SubagentsLike | undefined;
 }
 
 /** 渲染单个会话操作结果。 */
@@ -199,11 +211,21 @@ export function buildSessionStopTool(deps: SessionControlDeps): ToolDefinition {
       render: (_args, value) =>
         renderOne('stop requested for session', (value as unknown as SessionStopView).sessionId),
     },
-    async execute(args) {
+    async execute(args, exec) {
       const id = args.session_id.trim();
       try {
         await sessionController.cancel({ sessionId: id });
       } catch (error) {
+        const sender = exec.agent;
+        const subagents = subagentsOf(sender);
+        if (isSubagentRouting(error) && sender !== undefined && subagents !== undefined) {
+          try {
+            subagents.interrupt(id, { kind: 'ancestor', agent: sender });
+            return { accepted: true, sessionId: id } as unknown as ToolJsonValue;
+          } catch (interruptError) {
+            throw new Error(`Could not stop session '${id}': ${messageOf(interruptError)}`);
+          }
+        }
         throw new Error(`Could not stop session '${id}': ${messageOf(error)}`);
       }
       return { accepted: true, sessionId: id } as unknown as ToolJsonValue;
@@ -233,7 +255,7 @@ export function buildSessionSendTool(deps: SessionControlDeps): ToolDefinition {
         type: 'string',
         enum: ['queue', 'steer'],
         description:
-          'Delivery timing. queue waits for the next turn; steer targets the nearest step. Defaults to queue.',
+          'Delivery timing. queue waits for the next turn; steer targets the nearest step. Subagent delivery queues the reminder. Defaults to queue.',
       },
     },
     output: {
@@ -248,19 +270,32 @@ export function buildSessionSendTool(deps: SessionControlDeps): ToolDefinition {
         ];
       },
     },
-    async execute(args) {
+    async execute(args, exec) {
       const id = args.session_id.trim();
       const text = args.text.trim();
       if (text === '') throw new ToolArgsError(['text must not be empty']);
       const mode = args.mode === 'steer' ? 'steer' : 'queue';
+      const content = [{ type: 'text' as const, text: systemReminder(text) }];
       try {
         await sessionController.prompt({
           requestId: randomUUID(),
           sessionId: id,
           mode,
-          content: [{ type: 'text', text: systemReminder(text) }],
+          content,
         });
       } catch (error) {
+        const sender = exec.agent;
+        const subagents = subagentsOf(sender);
+        if (isSubagentRouting(error) && sender !== undefined && subagents !== undefined) {
+          try {
+            await subagents.sendMessage(sender, id, content, { signal: exec.signal });
+            return { delivered: true, sessionId: id, mode: 'queue' } as unknown as ToolJsonValue;
+          } catch (deliveryError) {
+            throw new Error(
+              `Could not deliver the reminder to session '${id}': ${messageOf(deliveryError)}`,
+            );
+          }
+        }
         throw new Error(`Could not deliver the reminder to session '${id}': ${messageOf(error)}`);
       }
       return { delivered: true, sessionId: id, mode } as unknown as ToolJsonValue;

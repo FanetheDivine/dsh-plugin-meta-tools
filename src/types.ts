@@ -216,6 +216,22 @@ export interface SessionControllerLike {
   cancel(request: { readonly sessionId: string }): { readonly accepted: true };
 }
 
+/** 子代理路由服务（`ctx.subagents`）中本插件用到的部分。 */
+export interface SubagentsLike {
+  /** 把消息投递给 sender 子树内的 subagent 会话。 */
+  sendMessage(
+    sender: Agent,
+    targetId: string,
+    content: readonly TextContentBlockLike[],
+    options: { readonly signal: AbortSignal },
+  ): Promise<string>;
+  /** 中断一个 subagent 会话的当前执行。 */
+  interrupt(
+    targetSessionId: string,
+    authority: { readonly kind: 'ancestor'; readonly agent: Agent },
+  ): void;
+}
+
 /** 活动会话表（`ctx.sessions`）中本插件用到的部分。 */
 export interface SessionsServiceLike {
   /** 按 id 读取活动会话。 */

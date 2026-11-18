@@ -80,7 +80,8 @@ dsh plugin add dsh-plugin-meta-tools
 - `session_get` 的临时目录不自动清理，长期运行需要自行清理。
 - 归档运行中的会话需要 `stop_activity: true`；否则返回错误并提示先停止。
 - 置顶要求会话存在且未归档；归档会移除置顶。
-- 发送消息默认排队，`mode: "steer"` 在最近一步投递。
+- 发送消息默认排队，`mode: "steer"` 在最近一步投递；subagent 目标按队列投递。
+- 停止与发送在目标是 subagent 会话时走子代理路由，调用方必须是它的祖先。
 
 ## 开发
 
