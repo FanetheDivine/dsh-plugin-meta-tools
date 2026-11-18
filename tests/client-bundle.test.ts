@@ -15,7 +15,7 @@ const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const CLIENT_FILE = path.join(ROOT, 'dist', 'client.js');
 
 /** 浏览器产物注册 id，与 package.json 的 name 一致。 */
-const CLIENT_ID = 'dsh-plugin-template';
+const CLIENT_ID = 'dsh-plugin-meta-tools';
 
 /** 一条产物注册。 */
 interface ClientRegistration {

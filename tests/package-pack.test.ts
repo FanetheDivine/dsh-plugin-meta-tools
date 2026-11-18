@@ -64,7 +64,7 @@ describe('npm 包内容（npm pack --dry-run）', () => {
     packedPaths();
     const client = readFileSync(path.join(ROOT, 'dist', 'client.js'), 'utf8');
     expect(client).toContain('window.__ModuleLoader__.load(');
-    expect(client).toContain('id: "dsh-plugin-template"');
+    expect(client).toContain('id: "dsh-plugin-meta-tools"');
     expect(client).toContain('exports.inject');
     expect(client).toContain('exports.apply');
   });

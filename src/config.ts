@@ -1,19 +1,27 @@
 /**
- * 插件配置：schema、默认值与严格校验。
+ * 插件配置：六个以工具名命名的热重载开关、默认值与严格校验。
  * 导出 Config、PluginConfig、DEFAULT_CONFIG、resolveConfig 与 readConfig。
  */
 import Schema from '@deepseek-ai/schemastery';
 
-import { DEFAULT_PREFIX, PLUGIN_LABEL } from './constants.ts';
+import { DEFAULT_SWITCH, PLUGIN_LABEL, type ToolName, TOOL_NAMES } from './constants.ts';
 import type { Volatile } from './types.ts';
 import { isRecord } from './utils.ts';
 
 /** 宿主传给 apply 的配置：每个字段是热重载引用，用 `.get()` 读取实时值。 */
 export interface Config {
-  /** 是否注册 demo 工具。 */
-  demoEnabled: Volatile<boolean>;
-  /** 工具回显与事件日志使用的前缀。 */
-  prefix: Volatile<string>;
+  /** 是否注册 workspace_list。 */
+  workspace_list: Volatile<boolean>;
+  /** 是否注册 workspace_create。 */
+  workspace_create: Volatile<boolean>;
+  /** 是否注册 workspace_remove。 */
+  workspace_remove: Volatile<boolean>;
+  /** 是否注册 workspace_rename。 */
+  workspace_rename: Volatile<boolean>;
+  /** 是否注册 session_list。 */
+  session_list: Volatile<boolean>;
+  /** 是否注册 session_get。 */
+  session_get: Volatile<boolean>;
 }
 
 /**
@@ -21,26 +29,29 @@ export interface Config {
  * schema 不拒绝未知键，严格校验由 resolveConfig 完成。
  */
 export const Config: Schema<Config> = Schema.object({
-  demoEnabled: Schema.boolean().default(true).volatile(),
-  prefix: Schema.string().default(DEFAULT_PREFIX).pattern(/\S/).volatile(),
+  workspace_list: Schema.boolean().default(DEFAULT_SWITCH).volatile(),
+  workspace_create: Schema.boolean().default(DEFAULT_SWITCH).volatile(),
+  workspace_remove: Schema.boolean().default(DEFAULT_SWITCH).volatile(),
+  workspace_rename: Schema.boolean().default(DEFAULT_SWITCH).volatile(),
+  session_list: Schema.boolean().default(DEFAULT_SWITCH).volatile(),
+  session_get: Schema.boolean().default(DEFAULT_SWITCH).volatile(),
 }) as unknown as Schema<Config>;
 
-/** 配置项的实时取值。 */
-export type PluginConfig = {
-  /** 是否注册 demo 工具。 */
-  demoEnabled: boolean;
-  /** 工具回显与事件日志使用的前缀。 */
-  prefix: string;
-};
+/** 配置项的实时取值：工具名到开关的映射。 */
+export type PluginConfig = { [K in ToolName]: boolean };
 
-/** 默认配置。 */
+/** 默认配置：六个工具全部开启。 */
 export const DEFAULT_CONFIG: Readonly<PluginConfig> = Object.freeze({
-  demoEnabled: true,
-  prefix: DEFAULT_PREFIX,
+  workspace_list: DEFAULT_SWITCH,
+  workspace_create: DEFAULT_SWITCH,
+  workspace_remove: DEFAULT_SWITCH,
+  workspace_rename: DEFAULT_SWITCH,
+  session_list: DEFAULT_SWITCH,
+  session_get: DEFAULT_SWITCH,
 });
 
-/** 合法的配置键。出现其他键时报错。 */
-const CONFIG_KEYS = new Set<string>(['demoEnabled', 'prefix']);
+/** 合法的配置键：全部工具名。 */
+const CONFIG_KEYS = new Set<string>(TOOL_NAMES);
 
 /** 把缺省或 null 的输入转为空对象。 */
 function normalizeConfigInput(raw: unknown): Record<string, unknown> {
@@ -55,22 +66,14 @@ export function resolveConfig(raw?: unknown): Readonly<PluginConfig> {
   for (const key of Object.keys(input)) {
     if (!CONFIG_KEYS.has(key)) throw new Error(`${PLUGIN_LABEL}: unknown config key "${key}"`);
   }
-  const config: PluginConfig = { ...DEFAULT_CONFIG };
-  // demoEnabled 必须是布尔值
-  const demoEnabled = input.demoEnabled;
-  if (demoEnabled !== undefined && demoEnabled !== null) {
-    if (typeof demoEnabled !== 'boolean') {
-      throw new Error(`${PLUGIN_LABEL}: config demoEnabled must be a boolean`);
+  const config: Record<ToolName, boolean> = { ...DEFAULT_CONFIG };
+  for (const name of TOOL_NAMES) {
+    const value = input[name];
+    if (value === undefined || value === null) continue;
+    if (typeof value !== 'boolean') {
+      throw new Error(`${PLUGIN_LABEL}: config ${name} must be a boolean`);
     }
-    config.demoEnabled = demoEnabled;
-  }
-  // prefix 必须是非空字符串
-  const prefix = input.prefix;
-  if (prefix !== undefined && prefix !== null) {
-    if (typeof prefix !== 'string' || prefix.trim() === '') {
-      throw new Error(`${PLUGIN_LABEL}: config prefix must be a non-empty string`);
-    }
-    config.prefix = prefix;
+    config[name] = value;
   }
   return Object.freeze(config);
 }
