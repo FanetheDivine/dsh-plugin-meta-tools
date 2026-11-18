@@ -38,6 +38,14 @@ export function makeCtx() {
   const registeredTools: unknown[] = [];
   const activeTools = new Set<unknown>();
   const effectDisposers: Array<() => void> = [];
+  /** 宿主服务注册表：`get` 与 `inject` 从它读取。 */
+  const services = new Map<string, unknown>();
+  /** 已登记或已激活的 inject 回调。 */
+  const injectRequests: Array<{
+    names: string[];
+    callback: (scoped: Context) => unknown;
+    active: boolean;
+  }> = [];
   const loggerCalls: Array<{ level: 'debug' | 'info' | 'warn'; args: unknown[] }> = [];
   const logger = {
     debug: (...args: unknown[]) => {
@@ -50,6 +58,18 @@ export function makeCtx() {
       loggerCalls.push({ level: 'warn', args });
     },
   };
+  /** 激活一个等待服务的回调。 */
+  const activate = (request: {
+    names: string[];
+    callback: (scoped: Context) => unknown;
+    active: boolean;
+  }): void => {
+    if (request.active) return;
+    if (!request.names.every((name) => services.has(name))) return;
+    request.active = true;
+    request.callback(ctx as unknown as Context);
+  };
+
   const ctx = {
     logger,
     tools: {
@@ -75,9 +95,37 @@ export function makeCtx() {
       list.push(fn);
       return () => true;
     },
+    /** 读取宿主服务，未提供时返回 undefined。 */
+    get(name: string) {
+      return services.get(name);
+    },
+    /** 登记一个等待服务的回调：所需服务全部可用时立即执行。 */
+    inject(names: string[], callback: (scoped: Context) => unknown) {
+      const request = { names, callback, active: false };
+      injectRequests.push(request);
+      activate(request);
+      return () => {
+        request.active = false;
+      };
+    },
     _onCallbacks: onCallbacks,
     _registeredTools: registeredTools,
     _activeTools: activeTools,
+    _services: services,
+    _injectRequests: injectRequests,
+    /** 提供一个宿主服务；等待该服务的 inject 回调随后激活。 */
+    _setService: (name: string, value: unknown) => {
+      services.set(name, value);
+      for (const request of injectRequests) {
+        if (request.names.includes(name)) activate(request);
+      }
+    },
+    /** 移除一个宿主服务。 */
+    _unsetService: (name: string) => {
+      services.delete(name);
+    },
+    /** 当前注册且未释放的工具名。 */
+    _activeToolNames: () => [...activeTools].map((tool) => (tool as { name: string }).name),
     /** 触发某事件的全部监听。 */
     _emit: (type: string, ...args: unknown[]) => {
       for (const fn of onCallbacks.get(type) ?? []) fn(...args);
@@ -92,6 +140,11 @@ export function makeCtx() {
     _onCallbacks: Map<string, ((...args: unknown[]) => unknown)[]>;
     _registeredTools: Array<{ name?: string; description?: string }>;
     _activeTools: Set<{ name?: string; description?: string }>;
+    _services: Map<string, unknown>;
+    _injectRequests: Array<{ names: string[]; active: boolean }>;
+    _setService: (name: string, value: unknown) => void;
+    _unsetService: (name: string) => void;
+    _activeToolNames: () => string[];
     _emit: (type: string, ...args: unknown[]) => void;
     _dispose: () => void;
     _loggerCalls: Array<{ level: 'debug' | 'info' | 'warn'; args: unknown[] }>;
@@ -173,7 +226,14 @@ export function makeClientCtx() {
         state._configFormRequests.push(entryId);
         const fake = makeConfigFormScope<Record<string, unknown>>({
           status: 'ready',
-          value: { demoEnabled: true, prefix: 'demo' },
+          value: {
+            workspace_list: true,
+            workspace_create: true,
+            workspace_remove: true,
+            workspace_rename: true,
+            session_list: true,
+            session_get: true,
+          },
         });
         state._configFormScopes.push(fake);
         return fake.scope;

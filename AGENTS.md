@@ -1,4 +1,4 @@
-先阅读 [README.md](./README.md) 了解项目。
+本仓库是 DSH 插件 `dsh-plugin-meta-tools`，为模型提供本 profile 的工作区与会话工具。先阅读 [README.md](./README.md) 了解项目。
 
 # 文档索引
 

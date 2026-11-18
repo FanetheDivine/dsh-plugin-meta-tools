@@ -1,5 +1,10 @@
 # 开发
 
+## 环境要求
+
+- Node.js 24.9 及以上，与 DSH 的运行要求一致；CI 使用 Node 24。
+- pnpm 11。
+
 ## 本地加载
 
 1. 运行 `pnpm dev`，tsdown 监听 `src/` 并重建 `dist/index.mjs` 与 `dist/client.js`。
@@ -7,7 +12,7 @@
 
 ```yaml
 - insert:
-    - id: dsh-plugin-template-dev
+    - id: dsh-plugin-meta-tools-dev
       name: file:///<repo>/dist/index.mjs
 ```
 
@@ -40,13 +45,7 @@
 
 - 浏览器组用 banner/footer/intro 包成 `window.__ModuleLoader__.load({ id, factory })` 闭包工厂。
 - `PLATFORM_MODULES` 列出宿主冻结模块表提供的模块，构建时保持 external。
-- 新增或升级宿主客户端依赖时，核对平台种子表与宿主版本。
-- 类型声明由 `tsc -p tsconfig.build.json` 生成到 `dist/client/`。
-
-## 环境要求
-
-- Node.js 24.9 及以上，与 DSH 的运行要求一致；CI 使用 Node 24。
-- pnpm 11。
+- 类型声明由 `tsc -p tsconfig.build.json` 生成到 `dist/`。
 
 ## 命令
 
@@ -54,7 +53,7 @@
 | --- | --- |
 | `pnpm dev` | 监听并构建 |
 | `pnpm build` | 打包并生成类型声明 |
-| `pnpm check` | 依次运行类型检查、lint、测试和构建 |
+| `pnpm check` | 依次运行类型检查、lint 与测试 |
 | `pnpm typecheck` | 类型检查 |
 | `pnpm lint` | biome 检查 |
 | `pnpm lint:fix` | biome 检查并自动修复 |
@@ -62,42 +61,29 @@
 | `pnpm test` | 运行 vitest |
 | `pnpm run release` | 检查并发布新版本 |
 
-## CI
-
-`.github/workflows/ci.yml` 有两个 job：
-
-| Job | 触发 | 内容 |
-| --- | --- | --- |
-| `check` | PR、打 tag | Node 24 上运行 `pnpm run full-check` |
-| `publish` | 默认禁用 | 打 tag 时发布 npm，用 OIDC 换取发布令牌 |
-
-- `publish` 由 `if: false` 禁用，原触发条件以注释保留；`pnpm run release` 推送的 tag 不会在 npm 产生新版本。
-- 模板转化时解禁，步骤见[宪章](../.specify/memory/constitution.md)原则 VII。
-
 ## 测试
 
 | 文件 | 覆盖内容 |
 | --- | --- |
-| `tests/plugin.test.ts` | 配置校验、热重载、demo 工具、`apply` 接线 |
-| `tests/config-form.test.ts` | 配置页草稿、空白前缀拒绝、保存、恢复默认与放弃 |
-| `tests/release-archive.test.mjs` | CHANGELOG 归档计划 |
-| `tests/client.test.ts` | 前端服务声明、字典与槽位注册、示例行与配置页渲染 |
+| `tests/plugin.test.ts` | 入口契约、开关注册与注销、可选服务缺失与晚到、热重载 |
+| `tests/config.test.ts` | 六个配置键的默认值、严格校验、冻结与实时读取 |
+| `tests/workspace-tools.test.ts` | 四个工作区工具的成功、错误与渲染 |
+| `tests/session-tools.test.ts` | 两个会话工具的筛选、分页、标题失败、截断与预算 |
+| `tests/contract.test.ts` | 六个工具的名称、说明、参数与输出 schema |
+| `tests/config-form.test.ts` | 配置页草稿、保存、恢复默认与卸载 |
+| `tests/client.test.ts` | 字典键集与空文案、配置页槽位注册与渲染 |
 | `tests/client-bundle.test.ts` | `dist/client.js` 的注册契约与导出 |
-| `tests/package-pack.test.ts` | npm 包只含发布所需文件，含前端产物 |
+| `tests/package-pack.test.ts` | npm 包只含发布所需文件 |
+| `tests/release-archive.test.mjs` | CHANGELOG 归档计划 |
 | `tests/worktree-extension.test.ts` | worktree 扩展的创建、复用与清理 |
-| `tests/helpers.ts` | 模拟宿主与客户端 `ctx`，记录注册、事件监听与日志 |
+| `tests/helpers.ts` | 模拟宿主与客户端 `ctx`，记录注册、事件、服务与日志 |
 | `tests/support/primitives.ts` | 把平台组件包解析到源码，避开已发布产物内联的依赖 |
 
-测试要求见[宪章](../.specify/memory/constitution.md)原则 IV。
-
-浏览器用例由仓库内的 `playwright` 驱动无头 Chrome。`vitest.config.ts` 把 `@deepseek-ai/dsh-client-ui-primitives` 指向包的源码：已发布的 `lib` 内联了 shiki、katex 等未声明的依赖，源码只依赖 react、clsx 与 `dsh-client-store`。
+浏览器用例由仓库内的 `playwright` 驱动无头 Chrome。`vitest.config.ts` 把 `@deepseek-ai/dsh-client-ui-primitives` 指向包的源码。
 
 ## Spec Kit 流程
 
 DSH 从 `.dsh/skills/` 加载 `speckit-*` skill，在对话框输入 `/` 调用。
-
-- 执行条件见 [AGENTS.md](../AGENTS.md#开发流程) 的开发流程节。
-- 分支与 worktree 规则见 `/speckit-worktree-create`。
 
 | 步骤 | 命令 | 产出 |
 | --- | --- | --- |
@@ -127,25 +113,22 @@ DSH 从 `.dsh/skills/` 加载 `speckit-*` skill，在对话框输入 `/` 调用�
 
 ```text
 cordis.patch.yml            # 插件行，dsh plugin add 时插入 profile
+locale/                     # 插件页标题、描述与详情
+icon.svg                    # 插件图标
 src/
-├── index.ts                # 打包入口，导出 name、inject、apply、Config
-├── config.ts               # Config schema、默认值、严格校验与热重载读取
-├── constants.ts            # 共享常量
-├── demo-tool.ts            # demo_echo 工具
-├── events.ts               # agent 事件监听示例
-├── types.ts                # 宿主类型再导出
-├── utils.ts                # 零依赖工具函数
+├── index.ts                # 打包入口：name、inject、apply、Config 与工具组接线
+├── config.ts               # 六个开关的 Config schema、默认值、严格校验与热重载读取
+├── constants.ts            # 插件标识、工具名与结果上限
+├── types.ts                # 宿主类型再导出与工作区/会话服务契约
+├── utils.ts                # 对象判断、时间格式化、数值夹取与文本拼接
+├── workspace-tools.ts      # 四个工作区工具与渲染
+├── session-tools.ts        # 两个会话工具、标题读取与消息截断
 └── client/
-    ├── index.ts            # 浏览器入口：注册字典、示例行与配置页
-    ├── config-form.ts      # 配置页草稿模型与行键常量
+    ├── index.ts            # 浏览器入口：注册字典与配置页
+    ├── config-form.ts      # 六个开关的草稿模型与行键
     ├── config-page.tsx     # 配置页的 summary 与 page 视图
-    ├── demo-dock.tsx       # 前端示例行组件
-    └── locales.ts          # 中英文字典与命名空间
-dist/
-├── index.mjs               # 宿主产物
-├── client.js               # 浏览器产物（闭包工厂）
-├── index.d.ts              # 宿主类型声明
-└── client/                 # 前端类型声明
+    └── locales.ts          # 配置页中英文字典
+dist/                       # 构建产物
 scripts/release-archive.mjs # 发布时归档 CHANGELOG
 tests/                      # vitest 单元测试
 changelogs/                 # 各版本的 CHANGELOG 归档
@@ -159,5 +142,5 @@ specs/<NNN>-<name>/         # 每个需求的 spec、plan、tasks
 ├── scripts/bash/           # Spec Kit 脚本
 ├── extensions.yml          # 扩展钩子
 └── extensions/worktree/    # 本地 worktree 扩展
-.github/workflows/ci.yml    # CI：check（Node 24）与默认禁用的 publish
+.github/workflows/ci.yml    # CI：check 与 tag 触发的 publish
 ```

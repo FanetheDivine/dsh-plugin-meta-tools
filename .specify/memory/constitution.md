@@ -1,16 +1,16 @@
 <!--
 Sync Impact Report
-- Version change: 1.7.0 → 1.8.0
-- Modified principles:
-  - I. 宿主契约：入口导出增加宿主约定的 Config
-- Added principles: 无
+- Version change: 1.9.0 → 1.10.0
+- Added principles:
+  - IX. 界面文案与本地化：前端用户可见文案全部来自 locale 字典
+- Modified principles: 无
 - Modified sections: 无
 - Removed sections: 无
 - Templates requiring updates: 无，plan、spec、tasks 模板在运行时读取本文件
 - Follow-up TODOs: 无
 -->
 
-# dsh-plugin-template Constitution
+# dsh-plugin-meta-tools Constitution
 
 ## Core Principles
 
@@ -19,7 +19,8 @@ Sync Impact Report
 - `src/index.ts` MUST 只导出宿主约定的 `name`、`inject`、`apply`、`Config`。
 - `Config` MUST 声明配置 schema，需要热重载的字段用 `.volatile()` 标记。
 - `name` MUST 与 `cordis.patch.yml` 中插件行的 `id` 一致。
-- `inject` MUST 列出 `apply` 用到的全部宿主服务。
+- `inject` MUST 列出 `apply` 直接使用的必需服务。
+- 可能在 profile 中缺失的可选服务 MUST 通过 `ctx.inject` 获取，服务缺失时插件 MUST 保持加载。
 - 宿主类型 MUST 经 `src/types.ts` 以 type-only 方式导入。
 - 本仓库是 DSH 插件的模板，宿主依赖版本 MUST 以 `@deepseek-ai/dsh` 的最新发布为准；`@deepseek-ai/*` 依赖的版本 MUST 与该发布声明的版本一致。
 - `@deepseek-ai/*` 依赖在该发布中没有对应版本时 MUST 从模板移除。
@@ -105,29 +106,16 @@ Sync Impact Report
 
 理由：`pnpm check` 与 CI 运行同一组检查，问题在提交前暴露。
 
-### VII. 模板定位
+### VII. 工具契约
 
-本仓库是 DSH 插件模板，不是某个具体插件。
+本仓库是实际插件 `dsh-plugin-meta-tools`。
 
-- 每个需求 MUST 在 spec 中声明变更类别：
-  - 模板变更：改进模板本身的机制、流程、文档与示例。
-  - 模板转化：把模板改造成实际插件，替换示例实现与仓库标识。
-- 模板变更 MUST 保持 `demo_echo` 示例、README 与测试可用，并保证新用户能按 README 跑通。
-- 模板转化 MUST 重新修订本宪章与 `AGENTS.md`：
-  - 删除示例相关原则与约定。
-  - 更新项目名、包名、README 与 `cordis.patch.yml`。
-  - 版本号按语义化规则递增，并记录修订理由。
-- 模板转化 MUST 在发布设置之前向用户确认是否把全部 `@deepseek-ai/dsh-*` 依赖升级到 npm 上的最新版本：
-  - 用户确认：升级依赖，同步 `pnpm-workspace.yaml` 的 `minimumReleaseAgeExclude` 版本号，并按原则 IV 提醒实机测试。
-  - 用户拒绝：依赖版本保持不变。
-- 模板转化 MUST 按顺序完成发布设置：
-  - 清空 `package.json` 的 `version`，由具体插件填入自己的首个版本号。
-  - 恢复 `.github/workflows/ci.yml` 中 `publish` job 被注释的 `if: startsWith(github.ref, 'refs/tags/')`，并删除 `if: false`。
-  - 提醒用户把 npm Trusted Publisher 绑定到新仓库与 `.github/workflows/ci.yml`。
-  - 清空过往 spec 和 changelog
-- 无法归类时 MUST 在 clarify 阶段向用户确认类别。
+- 六个工具的名称、参数、说明、错误与返回 MUST 与基准实现 `@local/dsh-harness-tools` 1.0.0 兼容。
+- 配置开关 MUST 与工具名一一对应；新增工具时 MUST 同时增加同名开关、文档与测试。
+- 修改工具契约 MUST 在 spec 中说明兼容性影响。
+- 移除或重命名工具 MUST 先获得用户确认。
 
-理由：模板与插件的约束不同。混用会让模板示例与真实插件相互拖累。
+理由：模型依赖固定的工具名与参数形成调用习惯，契约变化会破坏既有会话与外部说明。
 
 ### VIII. 公开引用
 
@@ -146,6 +134,17 @@ Sync Impact Report
 - 本地回环地址的运行时说明，例如 `http://127.0.0.1:<port>`。
 
 理由：其他用户克隆仓库后，每个链接、路径与依赖都必须能在其环境中解析。
+
+### IX. 界面文案与本地化
+
+- 所有用户可见的前端文案 MUST 来自 locale 字典；组件、样式与逻辑代码 MUST NOT 出现界面字符串字面量。
+- `src/client/locales.ts` 的中文字典是键集事实源；英文字典 MUST 覆盖同一键集，缺键或空文案 MUST 使测试失败。
+- 字典 MUST 在浏览器入口通过 `ctx.locale.register(<包名>, { zh, en })` 注册，组件只通过 `t(key)` 读取。
+- 新增或修改界面文案 MUST 同时更新中英文字典与配置页测试。
+- 图标、图片等静态资源 MUST NOT 承载需要翻译的文案；可访问名称使用包名或与界面语言无关的标识。
+- 模型面向的工具契约文案（工具名、说明、参数说明、错误与渲染文本）不经过前端 locale，按原则 VII 保持英文并与基准兼容。
+
+理由：界面语言由宿主切换，硬编码文案会与语言设置不一致，也会绕开字典完整性检查。
 
 ## Governance
 
@@ -171,4 +170,4 @@ Sync Impact Report
   - PATCH：措辞澄清。
 - `/speckit-plan` 的 Constitution Check 与 `/speckit-analyze` MUST 逐条核对本宪章。
 
-**Version**: 1.8.0 | **Ratified**: 2026-11-17 | **Last Amended**: 2026-11-18
+**Version**: 1.10.0 | **Ratified**: 2026-11-17 | **Last Amended**: 2026-11-18

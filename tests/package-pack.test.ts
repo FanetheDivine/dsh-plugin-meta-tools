@@ -47,13 +47,16 @@ function packedPaths(): Set<string> {
 }
 
 describe('npm 包内容（npm pack --dry-run）', () => {
-  it('tarball 含 dist/cordis.patch.yml/README.md，不含 src/tests/scripts', () => {
+  it('tarball 含 dist/cordis.patch.yml/README.md 与展示资源，不含 src/tests/scripts', () => {
     const packed = packedPaths();
     expect(packed.has('dist/index.mjs')).toBe(true);
     expect(packed.has('dist/index.d.ts')).toBe(true);
     expect(packed.has('dist/client.js')).toBe(true);
     expect(packed.has('cordis.patch.yml')).toBe(true);
     expect(packed.has('README.md')).toBe(true);
+    expect(packed.has('locale/en.json')).toBe(true);
+    expect(packed.has('locale/zh.json')).toBe(true);
+    expect(packed.has('icon.svg')).toBe(true);
     expect([...packed].some((p) => p.startsWith('src/'))).toBe(false);
     expect([...packed].some((p) => p.startsWith('tests/'))).toBe(false);
     expect([...packed].some((p) => p.startsWith('scripts/'))).toBe(false);
@@ -64,7 +67,7 @@ describe('npm 包内容（npm pack --dry-run）', () => {
     packedPaths();
     const client = readFileSync(path.join(ROOT, 'dist', 'client.js'), 'utf8');
     expect(client).toContain('window.__ModuleLoader__.load(');
-    expect(client).toContain('id: "dsh-plugin-template"');
+    expect(client).toContain('id: "dsh-plugin-meta-tools"');
     expect(client).toContain('exports.inject');
     expect(client).toContain('exports.apply');
   });

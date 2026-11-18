@@ -1,15 +1,16 @@
 /**
- * 插件面板配置页：`summary` 一行描述，`page` 用官方表单控件渲染两个字段。
+ * 插件面板配置页：`summary` 一行描述，`page` 用官方开关控件渲染六个工具开关。
  * 导出 ConfigPage 与其 props。
  */
 
 // Type-only：拉取 plugins.row.config 槽位声明。
 import type {} from '@deepseek-ai/dsh-client-ui-plugin-manager/client';
 import type { SettingsFormLabels } from '@deepseek-ai/dsh-client-ui-primitives';
-import { SettingsForm, SettingsValueField, Switch } from '@deepseek-ai/dsh-client-ui-primitives';
+import { SettingsForm, Switch } from '@deepseek-ai/dsh-client-ui-primitives';
 import type { InjectFace, PropsLocale, PropsRuntime } from '@deepseek-ai/dsh-client-ui-slots';
-import { type CSSProperties, useId } from 'react';
+import type { CSSProperties } from 'react';
 
+import { TOOL_NAMES } from '../constants.ts';
 import type { ConfigPageInjected } from './config-form.ts';
 import type { NS } from './locales.ts';
 
@@ -17,6 +18,34 @@ import type { NS } from './locales.ts';
 export type ConfigPageProps = PropsRuntime<'plugins.row.config'> &
   PropsLocale<typeof NS> &
   InjectFace<ConfigPageInjected>;
+
+/** 每个工具的文案键。 */
+const TOOL_TEXT = {
+  workspace_list: {
+    title: 'config.workspace_list.title',
+    description: 'config.workspace_list.description',
+  },
+  workspace_create: {
+    title: 'config.workspace_create.title',
+    description: 'config.workspace_create.description',
+  },
+  workspace_remove: {
+    title: 'config.workspace_remove.title',
+    description: 'config.workspace_remove.description',
+  },
+  workspace_rename: {
+    title: 'config.workspace_rename.title',
+    description: 'config.workspace_rename.description',
+  },
+  session_list: {
+    title: 'config.session_list.title',
+    description: 'config.session_list.description',
+  },
+  session_get: {
+    title: 'config.session_get.title',
+    description: 'config.session_get.description',
+  },
+} as const;
 
 /** 表单框架文案。 */
 function formLabels(t: ConfigPageProps['t']): SettingsFormLabels {
@@ -30,17 +59,15 @@ function formLabels(t: ConfigPageProps['t']): SettingsFormLabels {
 }
 
 /**
- * 渲染模板插件在“插件”页的行配置。
+ * 渲染本插件在“插件”页的行配置。
  * @param props - 视图名、已暂存的表单，以及编辑、保存与放弃动作。
- * @returns `page` 渲染表单，`summary` 渲染该行缺失描述时的一行文案。
+ * @returns `page` 渲染六个开关，`summary` 渲染该行缺失描述时的一行文案。
  */
 export function ConfigPage(props: ConfigPageProps) {
   const { t } = props;
-  const id = useId();
   const state = props.useConfigForm((value) => value);
   if (props.view === 'summary') return t('config.summary');
   const disabled = !state.writable || state.saving;
-  const title = t('config.demoEnabled.title');
   return (
     <SettingsForm
       labels={formLabels(t)}
@@ -48,40 +75,25 @@ export function ConfigPage(props: ConfigPageProps) {
       onSave={props.save}
       onDiscard={props.discard}
     >
-      <div data-dsh-template-config style={rowStyle}>
-        <div style={textStyle}>
-          <span style={titleStyle}>{title}</span>
-          <p style={descriptionStyle}>{t('config.demoEnabled.description')}</p>
-        </div>
-        <Switch
-          checked={state.demoEnabled.text === 'true'}
-          disabled={disabled}
-          label={title}
-          onChange={(next) => {
-            props.edit('demoEnabled', next ? 'true' : 'false');
-          }}
-        />
-      </div>
-      <div data-dsh-template-config-prefix style={fieldStyle}>
-        <SettingsValueField
-          id={`${id}-prefix`}
-          label={t('config.prefix.title')}
-          hint={t('config.prefix.description')}
-          invalidLabel={t('config.prefix.invalid')}
-          overriddenLabel={t('config.overridden')}
-          resetLabel={t('config.reset')}
-          text={state.prefix.text}
-          overridden={state.prefix.overridden}
-          invalid={state.prefix.invalid}
-          disabled={disabled}
-          onEdit={(text) => {
-            props.edit('prefix', text);
-          }}
-          onReset={() => {
-            props.resetField('prefix');
-          }}
-        />
-      </div>
+      {TOOL_NAMES.map((tool) => {
+        const title = t(TOOL_TEXT[tool].title);
+        return (
+          <div key={tool} data-dsh-meta-tools-config={tool} style={rowStyle}>
+            <div style={textStyle}>
+              <span style={titleStyle}>{title}</span>
+              <p style={descriptionStyle}>{t(TOOL_TEXT[tool].description)}</p>
+            </div>
+            <Switch
+              checked={state[tool].text === 'true'}
+              disabled={disabled}
+              label={title}
+              onChange={(next) => {
+                props.edit(tool, next ? 'true' : 'false');
+              }}
+            />
+          </div>
+        );
+      })}
     </SettingsForm>
   );
 }
@@ -117,9 +129,4 @@ const descriptionStyle: CSSProperties = {
   fontSize: 12,
   lineHeight: '18px',
   color: 'var(--dsw-alias-label-secondary)',
-};
-
-/** 前缀字段外层：与上一字段之间画 0.5px 的 l2 分隔线。 */
-const fieldStyle: CSSProperties = {
-  borderTop: '0.5px solid var(--dsw-alias-border-l2)',
 };

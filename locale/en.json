@@ -1,0 +1,6 @@
+{
+  "meta": {
+    "title": "Workspace and session tools",
+    "description": "Adds model-callable tools that operate this profile: list, add, rename and remove workspaces, and list or read sessions by id. Six switches in the plugin panel enable or disable each tool. Creating or removing a workspace never copies, moves, or deletes files or session history; removing one only ungroups its sessions. Stored titles are folded from session logs, so a title read can touch each listed session's log."
+  }
+}

@@ -15,7 +15,7 @@ const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const CLIENT_FILE = path.join(ROOT, 'dist', 'client.js');
 
 /** 浏览器产物注册 id，与 package.json 的 name 一致。 */
-const CLIENT_ID = 'dsh-plugin-template';
+const CLIENT_ID = 'dsh-plugin-meta-tools';
 
 /** 一条产物注册。 */
 interface ClientRegistration {
@@ -113,8 +113,9 @@ describe('前端产物（dist/client.js）', () => {
     if (exported === undefined) throw new Error('产物工厂没有返回导出对象');
     const ctx = makeClientCtx();
     (exported.apply as (target: unknown) => void)(ctx);
-    expect(ctx._slotInjections).toEqual(['conversation.composer.dock', 'plugins.row.config']);
-    expect(ctx._slotRegistrations[0]?.options.id).toBe('demo');
-    expect(ctx._slotRegistrations[1]?.options.key).toBe('dsh-plugin-template#dsh-plugin-template');
+    expect(ctx._slotInjections).toEqual(['plugins.row.config']);
+    expect(ctx._slotRegistrations[0]?.options.key).toBe(
+      'dsh-plugin-meta-tools#dsh-plugin-meta-tools',
+    );
   });
 });
