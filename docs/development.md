@@ -62,7 +62,7 @@
 | `pnpm test:dist` | 只运行产物测试，要求 `dist` 新鲜 |
 | `pnpm run release` | 检查并发布新版本 |
 
-代码质量门禁是 `pnpm check`；`test:code` 与 `test:dist` 用于局部验证。
+代码质量门禁是 `pnpm full-check`；`pnpm check`、`test:code` 与 `test:dist` 用于局部验证。
 
 ## CI
 
