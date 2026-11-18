@@ -1,16 +1,25 @@
 // 工作区工具测试：列表视图、幂等创建、重命名、移除与错误文案。
+import { basename, resolve } from 'node:path';
+
 import { describe, expect, it, vi } from 'vitest';
 
 import type { WorkspaceLike, WorkspaceRegistryLike } from '../src/types.ts';
 import { buildWorkspaceTool } from '../src/workspace-tools.ts';
 import { makeCtx } from './helpers.ts';
 
+/** 平台无关的绝对路径：Windows 为当前盘符下的 projects，POSIX 为 /projects。 */
+const ROOT = resolve('projects');
+const PATH_A = resolve(ROOT, 'a');
+const PATH_B = resolve(ROOT, 'b');
+const PATH_NEW = resolve(ROOT, 'new');
+const PATH_X = resolve(ROOT, 'x');
+
 /** 构造一个工作区；setTitle 会同步更新 title。 */
 function makeWorkspace(overrides: Partial<WorkspaceLike> = {}): WorkspaceLike {
   const workspace = {
     id: 'w1',
     title: '项目 A',
-    path: 'D:\\projects\\a',
+    path: PATH_A,
     sessionIds: [] as string[],
     createdAt: '2026-01-01T00:00:00.000Z',
     updatedAt: '2026-01-02T00:00:00.000Z',
@@ -33,7 +42,7 @@ function makeRegistry(workspaces: WorkspaceLike[]) {
   const create = vi.fn(async (path: string, title?: string) => {
     const created = makeWorkspace({
       id: `w${state.workspaces.length + 1}`,
-      title: title ?? path.split('\\').at(-1) ?? path,
+      title: title ?? basename(path),
       path,
     });
     state.workspaces.push(created);
@@ -82,7 +91,7 @@ describe('workspace_list', () => {
     const second = makeWorkspace({
       id: 'w2',
       title: '项目 B',
-      path: 'D:\\projects\\b',
+      path: PATH_B,
       sessionIds: ['s4'],
       status: async () => 'missing-dir',
     });
@@ -115,7 +124,7 @@ describe('workspace_list', () => {
     const [block] = tool.output.render({}, value as never);
     const text = (block as { text: string }).text;
     expect(text).toContain('1 workspace');
-    expect(text).toContain('项目 A — D:\\projects\\a');
+    expect(text).toContain(`项目 A — ${PATH_A}`);
     expect(text).toContain('2 session(s)');
     expect(text).toContain('directory missing');
   });
@@ -125,10 +134,7 @@ describe('workspace_create', () => {
   it('目录已注册时返回 created=false 且不调用 create', async () => {
     const { build, create } = setup([makeWorkspace()]);
     const tool = build('workspace_create');
-    const value = (await tool.execute({ path: 'D:\\projects\\a' }, exec)) as Record<
-      string,
-      unknown
-    >;
+    const value = (await tool.execute({ path: PATH_A }, exec)) as Record<string, unknown>;
     expect(value.created).toBe(false);
     expect(value.note).toContain('already registered');
     expect(create).not.toHaveBeenCalled();
@@ -139,12 +145,12 @@ describe('workspace_create', () => {
   it('新目录注册并返回 created=true', async () => {
     const { build, create, state } = setup([]);
     const tool = build('workspace_create');
-    const value = (await tool.execute({ path: 'D:\\projects\\new', title: 'New' }, exec)) as Record<
+    const value = (await tool.execute({ path: PATH_NEW, title: 'New' }, exec)) as Record<
       string,
       unknown
     >;
     expect(value.created).toBe(true);
-    expect(create).toHaveBeenCalledWith('D:\\projects\\new', 'New');
+    expect(create).toHaveBeenCalledWith(PATH_NEW, 'New');
     expect(state.workspaces).toHaveLength(1);
     const [block] = tool.output.render({}, value as never);
     expect((block as { text: string }).text).toContain('workspace created: New');
@@ -167,8 +173,8 @@ describe('workspace_create', () => {
       throw new Error('disk offline');
     });
     const tool = build('workspace_create');
-    await expect(tool.execute({ path: 'D:\\projects\\x' }, exec)).rejects.toThrow(
-      "Could not register 'D:\\projects\\x' as a workspace: disk offline",
+    await expect(tool.execute({ path: PATH_X }, exec)).rejects.toThrow(
+      `Could not register '${PATH_X}' as a workspace: disk offline`,
     );
     expect(ctx).toBeDefined();
   });
@@ -204,7 +210,7 @@ describe('workspace_remove', () => {
     const value = (await tool.execute({ workspace_id: 'w1' }, exec)) as Record<string, unknown>;
     expect(remove).toHaveBeenCalledWith('w1');
     expect(state.workspaces).toHaveLength(0);
-    expect(value).toEqual({ removed: true, removedId: 'w1', path: 'D:\\projects\\a' });
+    expect(value).toEqual({ removed: true, removedId: 'w1', path: PATH_A });
     const [block] = tool.output.render({}, value as never);
     expect((block as { text: string }).text).toContain('removed workspace w1');
   });
