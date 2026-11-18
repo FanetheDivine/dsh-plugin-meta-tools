@@ -1,9 +1,12 @@
 <!--
 Sync Impact Report
-- Version change: 1.9.0 → 1.10.0
-- Added principles:
-  - IX. 界面文案与本地化：前端用户可见文案全部来自 locale 字典
-- Modified principles: 无
+- Version change: 1.10.0 → 1.11.0
+- Modified principles:
+  - I. 宿主契约：删去模板措辞
+  - IV. 测试同步：进包清单补 `locale/*.json` 与 `icon.svg`
+  - VI. 质量门禁：合并门禁改为 `pnpm full-check`
+  - IX. 界面文案与本地化：增加元数据资源、键集一致、清单声明与禁用字符条款
+- Added principles: 无
 - Modified sections: 无
 - Removed sections: 无
 - Templates requiring updates: 无，plan、spec、tasks 模板在运行时读取本文件
@@ -22,10 +25,10 @@ Sync Impact Report
 - `inject` MUST 列出 `apply` 直接使用的必需服务。
 - 可能在 profile 中缺失的可选服务 MUST 通过 `ctx.inject` 获取，服务缺失时插件 MUST 保持加载。
 - 宿主类型 MUST 经 `src/types.ts` 以 type-only 方式导入。
-- 本仓库是 DSH 插件的模板，宿主依赖版本 MUST 以 `@deepseek-ai/dsh` 的最新发布为准；`@deepseek-ai/*` 依赖的版本 MUST 与该发布声明的版本一致。
-- `@deepseek-ai/*` 依赖在该发布中没有对应版本时 MUST 从模板移除。
+- 宿主依赖版本 MUST 以 `@deepseek-ai/dsh` 的发布为准；`@deepseek-ai/*` 依赖的版本 MUST 与该发布声明的版本一致。
+- `@deepseek-ai/*` 依赖在该发布中没有对应版本时 MUST 从依赖中移除。
 
-理由：宿主 loader 依靠这些导出识别和启用插件，`Config` 让宿主校验配置并向“插件”面板提供表单。模板随宿主发布升级，子包各自维护发布线，统一以 `@deepseek-ai/dsh` 为准可避免版本错位。
+理由：宿主 loader 依靠这些导出识别和启用插件，`Config` 让宿主校验配置并向“插件”面板提供表单。子包各自维护发布线，统一以 `@deepseek-ai/dsh` 为准可避免版本错位。
 
 ### II. 依赖归属
 
@@ -55,7 +58,7 @@ Sync Impact Report
 - 测试 MUST 验证真实行为，不复述默认值或文案。
 - 单元测试 MUST 使用 `tests/helpers.ts` 的模拟 `ctx`。
 - 发布内容 MUST 由 package-pack 测试回归：
-  - 进包：`dist`、`cordis.patch.yml`、`README.md`。
+  - 进包：`dist`、`cordis.patch.yml`、`locale/*.json`、`icon.svg`、`README.md`。
   - 不进包：`src`、`tests`、`scripts`。
 - 涉及宿主装载或真实对话链路的变更 SHOULD 在真实宿主上做端到端验证。
 - `dsh` 版本变更后 MUST 提醒用户执行实机测试，并说明变更的版本号。
@@ -102,9 +105,9 @@ Sync Impact Report
 ### VI. 质量门禁
 
 - 文件变更后 MUST 运行 `pnpm format && pnpm check`。
-- 合并前 MUST 通过 `pnpm check`。
+- 合并前 MUST 通过 `pnpm full-check`。
 
-理由：`pnpm check` 与 CI 运行同一组检查，问题在提交前暴露。
+理由：`check` 覆盖类型、lint 与源码测试，`build` 末尾的产物测试覆盖发布内容；`pnpm full-check` 与 CI 运行同一组检查，问题在提交前暴露。
 
 ### VII. 工具契约
 
@@ -143,8 +146,15 @@ Sync Impact Report
 - 新增或修改界面文案 MUST 同时更新中英文字典与配置页测试。
 - 图标、图片等静态资源 MUST NOT 承载需要翻译的文案；可访问名称使用包名或与界面语言无关的标识。
 - 模型面向的工具契约文案（工具名、说明、参数说明、错误与渲染文本）不经过前端 locale，按原则 VII 保持英文并与基准兼容。
+- 插件元数据 MUST 由 `locale/<语言 id>.json` 的 `meta` 提供：
+  - `meta.title` 与 `meta.description` MUST 为每种基线语言各写一份，各文件的 `meta` 键集 MUST 一致。
+  - 元数据资源 MUST 在 `package.json` 的 `exports` 与 `files` 中声明。
+  - 译文 MUST 保留占位符、斜杠命令与 API 字段名的原文。
+  - locale 资源 MUST 不含零宽空格 U+200B 与 BOM U+FEFF。
+  - 文案与元数据的变更 MUST 由测试覆盖结构、键集与打包内容。
+- 国际化规范 MUST 归属 `docs/i18n.md`。
 
-理由：界面语言由宿主切换，硬编码文案会与语言设置不一致，也会绕开字典完整性检查。
+理由：界面语言由宿主切换，硬编码文案会与语言设置不一致，也会绕开字典完整性检查。宿主按语言回退链读取元数据与字典；缺一份基线语言或漏掉打包声明时，用户看到英文包名或键名。
 
 ## Governance
 
@@ -170,4 +180,4 @@ Sync Impact Report
   - PATCH：措辞澄清。
 - `/speckit-plan` 的 Constitution Check 与 `/speckit-analyze` MUST 逐条核对本宪章。
 
-**Version**: 1.10.0 | **Ratified**: 2026-11-17 | **Last Amended**: 2026-11-18
+**Version**: 1.11.0 | **Ratified**: 2026-11-17 | **Last Amended**: 2026-11-18

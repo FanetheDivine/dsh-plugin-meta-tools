@@ -69,6 +69,7 @@ DSH 插件是一个 npm 包。宿主按约定的入口加载宿主部分，按 `
 | `exports["./client"]` | 浏览器产物 `dist/client.js` |
 
 - 所有界面文案来自 `src/client/locales.ts`；中文字典是键集事实源，英文字典必须同键，组件只通过 `t(key)` 读取。
+- 元数据资源 `locale/*.json` 供宿主在插件未激活时读取标题与描述；两处的完整规范见 [i18n.md](./i18n.md)。
 - `plugins.row.config` 槽位的键是 `<包名>#<行 id>`，当前两者相同。
 - 表单由 `SettingsFormModel` 暂存六个开关，`SettingsForm` 与 `Switch` 渲染，只在保存时写一次。
 - 控件使用 `--dsw-*` 主题令牌，随明暗主题与语言切换。
@@ -78,3 +79,4 @@ DSH 插件是一个 npm 包。宿主按约定的入口加载宿主部分，按 `
 - 宿主入口打包为 `dist/index.mjs`，`@deepseek-ai/*` 与 `schemastery` 保持 external，由宿主提供实例。
 - 浏览器入口打包为 `dist/client.js`，包成 `window.__ModuleLoader__.load({ id, factory })` 闭包工厂。
 - `files` 只发布 `dist`、`cordis.patch.yml`、`locale/*.json`、`icon.svg` 与 `README.md`。
+- 宿主经 `exports['./locale/*.json']` 读取标题与描述，插件停用时照常读取。

@@ -52,14 +52,28 @@
 | 命令 | 作用 |
 | --- | --- |
 | `pnpm dev` | 监听并构建 |
-| `pnpm build` | 打包并生成类型声明 |
-| `pnpm check` | 依次运行类型检查、lint 与测试 |
+| `pnpm build` | 打包、生成类型声明并运行 `test:dist` |
+| `pnpm check` | 依次运行类型检查、lint 和 `test:code` |
 | `pnpm typecheck` | 类型检查 |
 | `pnpm lint` | biome 检查 |
 | `pnpm lint:fix` | biome 检查并自动修复 |
 | `pnpm format` | biome 格式化 |
-| `pnpm test` | 运行 vitest |
+| `pnpm test:code` | 只运行源码测试 |
+| `pnpm test:dist` | 只运行产物测试，要求 `dist` 新鲜 |
 | `pnpm run release` | 检查并发布新版本 |
+
+代码质量门禁是 `pnpm full-check`；`pnpm check`、`test:code` 与 `test:dist` 用于局部验证。
+
+## CI
+
+`.github/workflows/ci.yml` 有两个 job：
+
+| Job | 触发 | 内容 |
+| --- | --- | --- |
+| `check` | PR、打 tag | Node 24 上运行 `pnpm run full-check` |
+| `publish` | 打 tag | 构建后发布 npm，用 OIDC 换取发布令牌 |
+
+- `full-check` 依次运行 `check` 与 `build`：`check` 不读取 `dist`，产物测试在 `build` 末尾执行。
 
 ## 测试
 
@@ -72,12 +86,19 @@
 | `tests/contract.test.ts` | 六个工具的名称、说明、参数与输出 schema |
 | `tests/config-form.test.ts` | 配置页草稿、保存、恢复默认与卸载 |
 | `tests/client.test.ts` | 字典键集与空文案、配置页槽位注册与渲染 |
-| `tests/client-bundle.test.ts` | `dist/client.js` 的注册契约与导出 |
-| `tests/package-pack.test.ts` | npm 包只含发布所需文件 |
+| `tests/client-bundle.test.ts` | `dist/client.js` 的注册契约与导出（产物测试） |
+| `tests/package-pack.test.ts` | npm 包只含发布所需文件，含前端产物与元数据资源（产物测试） |
+| `tests/metadata.test.ts` | 插件元数据的结构、键集、禁用字符与清单声明 |
+| `tests/dist-freshness.test.ts` | 产物新鲜度判定的四种状态 |
 | `tests/release-archive.test.mjs` | CHANGELOG 归档计划 |
 | `tests/worktree-extension.test.ts` | worktree 扩展的创建、复用与清理 |
 | `tests/helpers.ts` | 模拟宿主与客户端 `ctx`，记录注册、事件、服务与日志 |
 | `tests/support/primitives.ts` | 把平台组件包解析到源码，避开已发布产物内联的依赖 |
+| `tests/support/dist-freshness.ts` | 产物新鲜度检查，产物缺失或过期时提示运行 `pnpm build` |
+
+测试要求见[宪章](../.specify/memory/constitution.md)原则 IV。文案与元数据的规范见 [i18n.md](./i18n.md)。
+
+vitest 拆成 `code` 与 `dist` 两个 project。产物测试读取 `dist`，由 `build` 末尾的 `test:dist` 执行；`test:code` 不读取 `dist`。产物缺失或早于构建输入时，产物测试失败并提示运行 `pnpm build`。
 
 浏览器用例由仓库内的 `playwright` 驱动无头 Chrome。`vitest.config.ts` 把 `@deepseek-ai/dsh-client-ui-primitives` 指向包的源码。
 
