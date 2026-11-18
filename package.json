@@ -6,6 +6,14 @@
   "module": "./dist/index.mjs",
   "types": "./dist/index.d.ts",
   "description": "Meta tools for workspaces and sessions, with per-tool switches in the plugin panel.",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/FanetheDivine/dsh-plugin-meta-tools.git"
+  },
+  "homepage": "https://github.com/FanetheDivine/dsh-plugin-meta-tools#readme",
+  "bugs": {
+    "url": "https://github.com/FanetheDivine/dsh-plugin-meta-tools/issues"
+  },
   "icon": "./icon.svg",
   "keywords": [
     "dsh",

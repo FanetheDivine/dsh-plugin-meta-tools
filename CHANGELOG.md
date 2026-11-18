@@ -18,6 +18,7 @@
 
 ### Changed
 
+- `package.json` 补 `repository`、`homepage` 与 `bugs`，满足 npm provenance 的仓库来源校验
 - `session_get` 改为返回临时目录与文件路径，移除 `messages` 参数与消息列表
 - 插件页标题、描述与开关标签按新能力改写，工具标题合并为单行标签
 - 工具说明与文档去掉 `profile`
