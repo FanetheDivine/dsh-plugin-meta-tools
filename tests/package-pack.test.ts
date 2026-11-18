@@ -1,5 +1,5 @@
 // package.json 打包回归测试：npm pack --dry-run 断言 tarball 只含发布所需文件。
-// files 字段（package.json）决定分发内容：dist + cordis.patch.yml + README.md；
+// files 字段（package.json）决定分发内容：dist + cordis.patch.yml + locale/*.json + icon.svg + README.md；
 // src / tests / scripts 等开发文件不得进包。
 import { spawnSync } from 'node:child_process';
 import { existsSync, readFileSync } from 'node:fs';
