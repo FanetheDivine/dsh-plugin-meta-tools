@@ -66,3 +66,12 @@ pnpm format && pnpm check
 - 校验退出 0。
 - 质量门禁通过。
 - 远程存在 `fix/018-spec-number-uniqueness`，`main` 上没有 `specs/018-*` 的其他目录。
+
+## 验证记录
+
+2026-11-19：
+
+- `pnpm exec vitest run --project code tests/worktree-extension.test.ts`：25 个用例通过，覆盖场景 1–5。
+- `check-spec-number.sh --json`：`UNIQUE=true`，退出 0。
+- `pnpm full-check`：通过，149 个源码测试与 5 个产物测试全部通过。
+
