@@ -2,12 +2,12 @@
  * 会话工具：session_list 与 session_get。
  * 导出 buildSessionTool 与结果视图类型。
  */
-import { ToolArgsError, defineTool } from '@deepseek-ai/dsh-tools';
+import { defineTool, ToolArgsError } from '@deepseek-ai/dsh-tools';
 
 import {
-  MESSAGES_TOTAL_LIMIT,
   MESSAGE_TEXT_LIMIT,
-  SESSION_TOOL_NAMES,
+  MESSAGES_TOTAL_LIMIT,
+  type SESSION_TOOL_NAMES,
   TITLES_PAGE_LIMIT,
 } from './constants.ts';
 import type {

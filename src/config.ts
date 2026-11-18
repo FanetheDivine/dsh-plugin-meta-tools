@@ -4,7 +4,7 @@
  */
 import Schema from '@deepseek-ai/schemastery';
 
-import { DEFAULT_SWITCH, PLUGIN_LABEL, type ToolName, TOOL_NAMES } from './constants.ts';
+import { DEFAULT_SWITCH, PLUGIN_LABEL, TOOL_NAMES, type ToolName } from './constants.ts';
 import type { Volatile } from './types.ts';
 import { isRecord } from './utils.ts';
 

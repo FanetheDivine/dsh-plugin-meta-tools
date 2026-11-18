@@ -4,9 +4,9 @@
  */
 import { isAbsolute } from 'node:path';
 
-import { ToolArgsError, defineTool } from '@deepseek-ai/dsh-tools';
+import { defineTool, ToolArgsError } from '@deepseek-ai/dsh-tools';
 
-import { WORKSPACE_TOOL_NAMES } from './constants.ts';
+import type { WORKSPACE_TOOL_NAMES } from './constants.ts';
 import type {
   Context,
   ToolDefinition,
@@ -108,7 +108,8 @@ function renderWorkspaceList(_args: unknown, value: unknown): { type: 'text'; te
   for (const workspace of list.workspaces) {
     lines.push(`${workspace.title} — ${workspace.path}`);
     const details = [`id: ${workspace.id}`, `${workspace.sessionCount} session(s)`];
-    if (workspace.archivedSessionCount > 0) details.push(`${workspace.archivedSessionCount} archived`);
+    if (workspace.archivedSessionCount > 0)
+      details.push(`${workspace.archivedSessionCount} archived`);
     if (workspace.pinnedSessionCount > 0) details.push(`${workspace.pinnedSessionCount} pinned`);
     if (workspace.status === 'missing-dir') details.push('directory missing');
     lines.push(`  ${details.join(' · ')}`);
@@ -134,7 +135,10 @@ function renderWorkspaceOne(
 }
 
 /** 构建一个工作区工具定义。 */
-export function buildWorkspaceTool(name: WorkspaceToolName, deps: WorkspaceToolDeps): ToolDefinition {
+export function buildWorkspaceTool(
+  name: WorkspaceToolName,
+  deps: WorkspaceToolDeps,
+): ToolDefinition {
   const { ctx, registry } = deps;
 
   switch (name) {
@@ -211,7 +215,11 @@ export function buildWorkspaceTool(name: WorkspaceToolName, deps: WorkspaceToolD
         description:
           'Remove a workspace registration from this DSH profile. The directory, its files, and every session history stay untouched; its sessions become ungrouped. Re-adding the same directory later creates a fresh workspace with an empty session list.',
         parameters: {
-          workspace_id: { type: 'string', required: true, description: 'Workspace id from workspace_list.' },
+          workspace_id: {
+            type: 'string',
+            required: true,
+            description: 'Workspace id from workspace_list.',
+          },
         },
         output: {
           schema: OUTPUT,
@@ -246,7 +254,11 @@ export function buildWorkspaceTool(name: WorkspaceToolName, deps: WorkspaceToolD
         description:
           'Change the display title of one registered workspace. Duplicate titles across workspaces are allowed; the directory path is unchanged.',
         parameters: {
-          workspace_id: { type: 'string', required: true, description: 'Workspace id from workspace_list.' },
+          workspace_id: {
+            type: 'string',
+            required: true,
+            description: 'Workspace id from workspace_list.',
+          },
           title: { type: 'string', required: true, description: 'New display title.' },
         },
         output: {
@@ -264,7 +276,9 @@ export function buildWorkspaceTool(name: WorkspaceToolName, deps: WorkspaceToolD
           if (title === '') throw new ToolArgsError(['title must not be empty']);
           await workspace.setTitle(title);
           const { archived, pinned } = navigationState(ctx);
-          return { workspace: await workspaceView(workspace, archived, pinned) } as unknown as ToolJsonValue;
+          return {
+            workspace: await workspaceView(workspace, archived, pinned),
+          } as unknown as ToolJsonValue;
         },
       });
 

@@ -13,7 +13,7 @@ import type {
 } from '@deepseek-ai/dsh-client-ui-primitives';
 import { SettingsFormModel } from '@deepseek-ai/dsh-client-ui-primitives';
 
-import { type ToolName, TOOL_NAMES } from '../constants.ts';
+import { TOOL_NAMES, type ToolName } from '../constants.ts';
 
 /** 插件在“插件”页的配置页键：`<包名>#<行 id>`。 */
 export const ROW_KEY = 'dsh-plugin-meta-tools#dsh-plugin-meta-tools';

@@ -6,8 +6,8 @@ import { type PluginConfig, readConfig } from './config.ts';
 import {
   PLUGIN_LABEL,
   SESSION_TOOL_NAMES,
-  type ToolName,
   TOOL_NAMES,
+  type ToolName,
   WORKSPACE_TOOL_NAMES,
 } from './constants.ts';
 import { buildSessionTool } from './session-tools.ts';
@@ -74,7 +74,9 @@ export function apply(ctx: Context, config?: unknown): void {
       for (const dispose of disposers.splice(0)) dispose();
       for (const tool of SESSION_TOOL_NAMES) {
         if (!current[tool]) continue;
-        disposers.push(scoped.tools.register(buildSessionTool(tool, { ctx: scoped, sessionQuery })));
+        disposers.push(
+          scoped.tools.register(buildSessionTool(tool, { ctx: scoped, sessionQuery })),
+        );
       }
     };
     groups.push(sync);

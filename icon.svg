@@ -1,4 +1,5 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" fill="none">
+  <title>工作区与会话工具</title>
   <rect width="64" height="64" rx="14" fill="#3D5AFE"/>
   <rect x="14" y="16" width="36" height="9" rx="3" fill="#FFFFFF" fill-opacity="0.95"/>
   <rect x="14" y="28" width="36" height="9" rx="3" fill="#FFFFFF" fill-opacity="0.72"/>

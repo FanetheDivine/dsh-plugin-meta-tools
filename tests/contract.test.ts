@@ -74,8 +74,9 @@ describe('工具契约', () => {
       tool: { parameters: Record<string, unknown> },
       key: string,
     ): Record<string, unknown> => {
-      const properties = (tool.parameters as { properties: Record<string, Record<string, unknown>> })
-        .properties;
+      const properties = (
+        tool.parameters as { properties: Record<string, Record<string, unknown>> }
+      ).properties;
       return properties[key] as Record<string, unknown>;
     };
     expect(patch(tools.workspace_create, 'path')).toMatchObject({

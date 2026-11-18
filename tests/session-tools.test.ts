@@ -1,13 +1,12 @@
 // 会话工具测试：筛选、分页、标题读取、消息截断与预算、错误文案。
 import { describe, expect, it, vi } from 'vitest';
-
+import { buildSessionTool } from '../src/session-tools.ts';
 import type {
   SessionQueryLike,
   SessionRecordLike,
   SessionSurfaceLike,
   SessionTitleObservationLike,
 } from '../src/types.ts';
-import { buildSessionTool } from '../src/session-tools.ts';
 import { makeCtx } from './helpers.ts';
 
 /** 构造一个会话记录。 */
@@ -31,7 +30,13 @@ function messageEvent(type: 'user/message' | 'assistant/message', text: string) 
 /** 构造一个会话 surface。 */
 function makeSurface(
   id: string,
-  options: { createdAt?: number; cwd?: string; agentPreset?: string; events?: unknown[]; lastSeq?: number | null } = {},
+  options: {
+    createdAt?: number;
+    cwd?: string;
+    agentPreset?: string;
+    events?: unknown[];
+    lastSeq?: number | null;
+  } = {},
 ): SessionSurfaceLike {
   return {
     session: {
@@ -123,17 +128,26 @@ describe('session_list', () => {
     ctx._setService('workspaceRegistry', {
       get: (id: string) =>
         id === 'w1'
-          ? { id: 'w1', title: 'W', path: 'D:\\a', sessionIds: ['s1', 's3'], createdAt: '', updatedAt: '', status: async () => 'ok', setTitle: async () => undefined }
+          ? {
+              id: 'w1',
+              title: 'W',
+              path: 'D:\\a',
+              sessionIds: ['s1', 's3'],
+              createdAt: '',
+              updatedAt: '',
+              status: async () => 'ok',
+              setTitle: async () => undefined,
+            }
           : undefined,
       archivedSessionIds: ['s3'],
       pinnedSessionIds: ['s1'],
     });
     const tool = (name: 'session_list') => buildSessionTool(name, { ctx, sessionQuery: query });
 
-    const scoped = (await tool('session_list').execute(
-      { workspace_id: 'w1', limit: 1 },
-      exec,
-    )) as { total: number; sessions: Array<{ id: string; archived: boolean; pinned: boolean }> };
+    const scoped = (await tool('session_list').execute({ workspace_id: 'w1', limit: 1 }, exec)) as {
+      total: number;
+      sessions: Array<{ id: string; archived: boolean; pinned: boolean }>;
+    };
     expect(scoped.total).toBe(1);
     expect(scoped.sessions[0]?.id).toBe('s1');
     expect(scoped.sessions[0]?.pinned).toBe(true);
@@ -146,18 +160,18 @@ describe('session_list', () => {
   });
 
   it('未知 workspace_id 报错', async () => {
-    const { ctx, query, build } = setup({ records: [] });
+    const { ctx, build } = setup({ records: [] });
     ctx._setService('workspaceRegistry', { get: () => undefined });
-    await expect(
-      build('session_list').execute({ workspace_id: 'nope' }, exec),
-    ).rejects.toThrow("No workspace with id 'nope'");
+    await expect(build('session_list').execute({ workspace_id: 'nope' }, exec)).rejects.toThrow(
+      "No workspace with id 'nope'",
+    );
   });
 
   it('缺少工作区服务时带 workspace_id 报错', async () => {
     const { build } = setup({ records: [] });
-    await expect(
-      build('session_list').execute({ workspace_id: 'w1' }, exec),
-    ).rejects.toThrow('Workspace listing is unavailable in this profile.');
+    await expect(build('session_list').execute({ workspace_id: 'w1' }, exec)).rejects.toThrow(
+      'Workspace listing is unavailable in this profile.',
+    );
   });
 
   it('titles=false 时跳过标题读取', async () => {

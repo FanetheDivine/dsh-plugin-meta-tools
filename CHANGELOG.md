@@ -4,10 +4,12 @@
 
 ### Added
 
-- “插件”面板新增模板插件的配置页：开关 demo 工具、编辑回显前缀，保存后写入 profile 组合层
-- 保存 volatile 配置后插件不重启：工具按新值重新注册，`demo_echo` 与事件日志使用新前缀
+- 六个工具：`workspace_list`、`workspace_create`、`workspace_remove`、`workspace_rename`、`session_list` 与 `session_get`
+- 插件面板六个以工具名命名的开关，保存后热重载
+- 插件页标题、描述、详情与图标
 
 ### Changed
 
-- `src/config.ts` 导出 `Config` schema，`demoEnabled` 与 `prefix` 标记 `.volatile()`
-- 实机测试增加 B5、C4、C5 用例，覆盖热重载不重启、配置页保存与非法前缀
+- 仓库转化为 `dsh-plugin-meta-tools`：移除模板示例与前端示例行
+- 宪章升级到 1.9.0，定位改为实际插件并补充可选服务条款
+- CI 的发布任务恢复 tag 触发，版本改为 0.1.0

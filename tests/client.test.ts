@@ -1,9 +1,9 @@
 // 前端入口接线测试：断言服务声明、字典与配置页槽位注册、双语文案与渲染结果。
 import type {} from '@deepseek-ai/dsh-client-locale/client';
 import type {} from '@deepseek-ai/dsh-client-ui-plugin-manager/client';
+import type { SettingsFieldState } from '@deepseek-ai/dsh-client-ui-primitives';
 import type {} from '@deepseek-ai/dsh-client-ui-renderer/client';
 import type {} from '@deepseek-ai/dsh-client-ui-settings/client';
-import type { SettingsFieldState } from '@deepseek-ai/dsh-client-ui-primitives';
 import type { TranslateNS } from '@deepseek-ai/dsh-client-ui-slots';
 import { createElement } from 'react';
 import { renderToStaticMarkup } from 'react-dom/server';
@@ -57,7 +57,7 @@ function renderConfigPage(
   const props = {
     view,
     t: translate(dict),
-    useConfigForm: <S,>(select: (value: ConfigFormState) => S): S => select(state),
+    useConfigForm: <S>(select: (value: ConfigFormState) => S): S => select(state),
     edit: vi.fn(),
     resetField: vi.fn(),
     save: vi.fn(),

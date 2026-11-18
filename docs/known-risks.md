@@ -3,46 +3,43 @@
 ## 宿主版本
 
 - `@deepseek-ai/dsh-*` 处于 rc 阶段，接口可能在版本间变化。
-- 插件依赖的 `dsh-*` 版本应与运行它的 DSH 版本一致。
-- 实机测试按 `@deepseek-ai/dsh-agent` 的版本选择宿主，版本不一致时安装到 `~/.dsh-local/dsh-<版本>`，全局安装保持不变。
+- 插件依赖的版本应与运行它的 DSH 版本一致；当前固定为 0.2.2-rc.3。
+- 升级宿主后需要重新运行 `pnpm check` 与实机验证。
 
-## 安装 rc 依赖
+## 可选服务
 
-pnpm 的 minimum release age 策略会拒绝发布时间过短的包。
+- profile 未组合 `workspaceRegistry` 或 `sessionQuery` 时，对应工具组不注册。
+- 模型看不到工具时，先检查 profile 组合层是否加载了对应服务。
+- 服务晚到时工具组会补注册；服务卸载时整组释放。
 
-- `@deepseek-ai/dsh-*` 依赖未列入 `minimumReleaseAgeExclude` 时，`pnpm install` 失败。
-- 列入规则见[宪章](../.specify/memory/constitution.md)原则 II。
+## 同名工具冲突
 
-## 共享宿主实例
+- 本插件与 `@local/dsh-harness-tools` 注册同名工具，同一 profile 只能保留一个插件行。
+- 同时启用时后者注册失败或覆盖，取决于加载顺序；安装本插件前先移除旧行。
 
-插件运行时使用宿主提供的 cordis、dsh-tools 与 zod。
+## 标题读取
 
-- 这些包被打进 bundle 时会产生第二份实例，类型判断和服务注入随之失效。
-- 保持 external 的规则见[宪章](../.specify/memory/constitution.md)原则 II。
+- `session_list` 默认读取本页最多 40 个会话的标题，每个标题都要读日志。
+- 大历史下用 `titles: false` 或较小的 `limit`。
+- 单个会话读取失败不会让整个列表失败，失败结果会被忽略；整批失败时附加 `note`。
 
-## 前端产物
+## 工作区目录
 
-前端产物使用宿主约定的闭包工厂格式。
-
-- 格式变化时插件加载失败，表现为示例行不出现。
-- `PLATFORM_MODULES` 是宿主冻结模块表的副本；宿主升级后需要核对，缺失的模块在运行时请求失败。
-- 客户端依赖版本与宿主不一致时，槽位或 locale 服务可能不可用。
-- 前端没有独立页面入口，直接执行 `dist/client.js` 不会渲染。
-- 示例行依赖 `conversation.composer.dock` 槽位；宿主调整 UI 后槽位名或位置可能变化。
-
-## 配置面板
-
-- 只有标记 `.volatile()` 的字段出现在“插件”面板的配置页。
-- 配置被更高层覆盖时，宿主拒绝保存，表单保留草稿并提示未接受。
-- 表单命名空间是插件行在 profile 里的 id；`plugins.row.config` 的键是 `<包名>#<行 id>`。行 id 与包名不同时两处都要改。
-- 配置页依赖 `dsh-client-ui-plugin-manager` 与 `dsh-client-ui-settings` 的客户端包；宿主未加载这两个包时配置页不出现。
+- 目录被移动或删除时，注册记录仍在，`workspace_list` 返回 `status: missing-dir`。
+- `workspace_remove` 不清理目录，也不删除会话日志。
 
 ## 严格配置
 
-配置中出现未知键或非法值时，插件加载失败。
-
+- 配置中出现未知键或非布尔值时，插件加载失败。
 - 用户在 `cordis.patch.yml` 写错键名会导致插件停用。
 - 用 `dsh --profile <profile> --dump-config` 检查最终配置。
+
+## 前端
+
+- 配置页依赖 `dsh-client-ui-plugin-manager` 与 `dsh-client-ui-settings`；宿主未加载这些包时配置页不出现。
+- `PLATFORM_MODULES` 是宿主冻结模块表的副本；宿主升级后需要核对。
+- 配置页键是 `<包名>#<行 id>`；包名或行 id 变化时两处都要改。
+- 客户端依赖版本与宿主不一致时，槽位或 locale 服务可能不可用。
 
 ## Windows 长路径
 

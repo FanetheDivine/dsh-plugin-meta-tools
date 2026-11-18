@@ -226,7 +226,14 @@ export function makeClientCtx() {
         state._configFormRequests.push(entryId);
         const fake = makeConfigFormScope<Record<string, unknown>>({
           status: 'ready',
-          value: { demoEnabled: true, prefix: 'demo' },
+          value: {
+            workspace_list: true,
+            workspace_create: true,
+            workspace_remove: true,
+            workspace_rename: true,
+            session_list: true,
+            session_get: true,
+          },
         });
         state._configFormScopes.push(fake);
         return fake.scope;

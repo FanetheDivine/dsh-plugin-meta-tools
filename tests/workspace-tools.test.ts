@@ -48,7 +48,9 @@ function makeRegistry(workspaces: WorkspaceLike[]) {
   const registry: WorkspaceRegistryLike = {
     list: () => state.workspaces,
     get: (id) => state.workspaces.find((workspace) => workspace.id === id),
-    resolveByPath: vi.fn(async (path) => state.workspaces.find((workspace) => workspace.path === path)),
+    resolveByPath: vi.fn(async (path) =>
+      state.workspaces.find((workspace) => workspace.path === path),
+    ),
     create,
     delete: remove,
     get archivedSessionIds() {
@@ -123,7 +125,10 @@ describe('workspace_create', () => {
   it('目录已注册时返回 created=false 且不调用 create', async () => {
     const { build, create } = setup([makeWorkspace()]);
     const tool = build('workspace_create');
-    const value = (await tool.execute({ path: 'D:\\projects\\a' }, exec)) as Record<string, unknown>;
+    const value = (await tool.execute({ path: 'D:\\projects\\a' }, exec)) as Record<
+      string,
+      unknown
+    >;
     expect(value.created).toBe(false);
     expect(value.note).toContain('already registered');
     expect(create).not.toHaveBeenCalled();
