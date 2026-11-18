@@ -1,25 +1,45 @@
-// 工具契约测试：六个工具的名称、说明、参数与输出 schema 与基准插件一致。
+// 工具契约测试：十一个工具的名称、说明、参数与输出 schema。
 import { describe, expect, it } from 'vitest';
-
+import { buildSessionLogTool } from '../src/session-log.ts';
+import {
+  buildSessionArchiveTool,
+  buildSessionCreateTool,
+  buildSessionPinTool,
+  buildSessionSendTool,
+  buildSessionStopTool,
+} from '../src/session-ops.ts';
 import { buildSessionTool } from '../src/session-tools.ts';
-import type { SessionQueryLike, WorkspaceRegistryLike } from '../src/types.ts';
+import type {
+  SessionControllerLike,
+  SessionQueryLike,
+  WorkspaceRegistryLike,
+} from '../src/types.ts';
 import { buildWorkspaceTool } from '../src/workspace-tools.ts';
 import { makeCtx } from './helpers.ts';
 
-/** 基准插件的工具说明。 */
+/** 各工具说明。 */
 const DESCRIPTIONS: Record<string, string> = {
   workspace_list:
-    'List the workspaces (registered project directories) of this DSH profile, with their ids, titles, paths, and session counts. Start here to obtain a workspace id for the other workspace tools.',
+    'List the registered workspaces (project directories) with their ids, titles, paths, and session counts. Start here to obtain a workspace id for the other workspace tools.',
   workspace_create:
-    'Register an existing absolute directory as a workspace in this DSH profile. Idempotent: a directory that is already registered returns its existing workspace with created false. Nothing is copied, moved, or deleted on disk, and no session is created.',
+    'Register an existing absolute directory as a workspace. Idempotent: a directory that is already registered returns its existing workspace with created false. Nothing is copied, moved, or deleted on disk, and no session is created.',
   workspace_remove:
-    'Remove a workspace registration from this DSH profile. The directory, its files, and every session history stay untouched; its sessions become ungrouped. Re-adding the same directory later creates a fresh workspace with an empty session list.',
+    'Remove a workspace registration. The directory, its files, and every session history stay untouched; its sessions become ungrouped. Re-adding the same directory later creates a fresh workspace with an empty session list.',
   workspace_rename:
     'Change the display title of one registered workspace. Duplicate titles across workspaces are allowed; the directory path is unchanged.',
   session_list:
-    'List sessions of this DSH profile, newest first, as titles with ids and working directories. Filter with workspace_id or cwd to narrow the page. Stored titles are folded from each listed session log, so keep limit small; pass titles false to skip that read.',
+    "List sessions newest first, with ids, titles, and working directories. Filter by workspace, working directory, or a case-insensitive substring of the title. The calling session is omitted; subagent sessions appear as their main session. Stored titles are folded from session logs, so a title read can touch each listed session's log.",
   session_get:
-    'Read one session of this DSH profile by id: title, working directory, creation time, preset, event count, and optionally its latest model-visible user and assistant messages. Use session_list to find an id.',
+    'Export one session log to a temporary directory and return the written file paths. The export contains the main session and one log per subagent session. Each file is JSONL: a header line followed by one event per line. Read the returned files to inspect the session.',
+  session_create:
+    'Create a session, optionally in a workspace or directory, with an agent preset, a title, and a first prompt. Returns the new session id.',
+  session_stop: 'Cancel the current turn of one session without dropping its pending messages.',
+  session_send:
+    'Send one message to a session as a system reminder. The text is wrapped in a <system-reminder> frame, and a closing tag inside the text is escaped. Queue delivers at the next turn; steer delivers at the nearest step.',
+  session_pin:
+    'Pin a session to the top of its list, or remove the pin. A pinned session must exist and must not be archived.',
+  session_archive:
+    'Archive a session so it leaves the normal list, or restore an archived session. Archiving keeps the directory and every session log. A session with running work is refused unless stop_activity is true.',
 };
 
 /** 每个工具编译后的必填参数。 */
@@ -30,25 +50,43 @@ const REQUIRED: Record<string, string[] | undefined> = {
   workspace_rename: ['workspace_id', 'title'],
   session_list: undefined,
   session_get: ['session_id'],
+  session_create: undefined,
+  session_stop: ['session_id'],
+  session_send: ['session_id', 'text'],
+  session_pin: ['session_id'],
+  session_archive: ['session_id'],
 };
 
-/** 构造六个工具定义。 */
+/** 构造十一个工具定义。 */
 function definitions() {
   const ctx = makeCtx();
   const registry = {} as WorkspaceRegistryLike;
   const sessionQuery = {} as SessionQueryLike;
+  const sessionController = {} as SessionControllerLike;
   return {
     workspace_list: buildWorkspaceTool('workspace_list', { ctx, registry }),
     workspace_create: buildWorkspaceTool('workspace_create', { ctx, registry }),
     workspace_remove: buildWorkspaceTool('workspace_remove', { ctx, registry }),
     workspace_rename: buildWorkspaceTool('workspace_rename', { ctx, registry }),
     session_list: buildSessionTool('session_list', { ctx, sessionQuery }),
-    session_get: buildSessionTool('session_get', { ctx, sessionQuery }),
+    session_get: buildSessionLogTool({ ctx, sessionQuery }),
+    session_create: buildSessionCreateTool({ sessionController }),
+    session_stop: buildSessionStopTool({ sessionController }),
+    session_send: buildSessionSendTool({ sessionController }),
+    session_pin: buildSessionPinTool({ registry }),
+    session_archive: buildSessionArchiveTool({ registry }),
   };
 }
 
+/** 取一个参数的编译结果。 */
+function property(tool: { parameters: Record<string, unknown> }, key: string) {
+  const properties = (tool.parameters as { properties: Record<string, Record<string, unknown>> })
+    .properties;
+  return properties[key] as Record<string, unknown>;
+}
+
 describe('工具契约', () => {
-  it('名称、说明与输出 schema 与基准一致', () => {
+  it('名称、说明与输出 schema 一致', () => {
     for (const [name, tool] of Object.entries(definitions())) {
       expect(tool.name).toBe(name);
       expect(tool.description).toBe(DESCRIPTIONS[name]);
@@ -56,7 +94,7 @@ describe('工具契约', () => {
     }
   });
 
-  it('参数根对象与必填项与基准一致', () => {
+  it('参数根对象与必填项一致', () => {
     for (const [name, tool] of Object.entries(definitions())) {
       const parameters = tool.parameters as {
         type: string;
@@ -68,41 +106,39 @@ describe('工具契约', () => {
     }
   });
 
-  it('参数类型与说明与基准一致', () => {
+  it('关键参数类型、枚举与说明', () => {
     const tools = definitions();
-    const patch = (
-      tool: { parameters: Record<string, unknown> },
-      key: string,
-    ): Record<string, unknown> => {
-      const properties = (
-        tool.parameters as { properties: Record<string, Record<string, unknown>> }
-      ).properties;
-      return properties[key] as Record<string, unknown>;
-    };
-    expect(patch(tools.workspace_create, 'path')).toMatchObject({
+    expect(property(tools.workspace_create, 'path')).toMatchObject({
       type: 'string',
       description: 'Absolute path of an existing directory, for example C:\\projects\\app.',
     });
-    expect(patch(tools.workspace_create, 'title')).toMatchObject({ type: 'string' });
-    expect(patch(tools.workspace_remove, 'workspace_id')).toMatchObject({
-      type: 'string',
-      description: 'Workspace id from workspace_list.',
-    });
-    expect(patch(tools.workspace_rename, 'title')).toMatchObject({
-      type: 'string',
-      description: 'New display title.',
-    });
-    expect(patch(tools.session_list, 'limit')).toMatchObject({
+    expect(property(tools.session_list, 'query')).toMatchObject({ type: 'string' });
+    expect(property(tools.session_list, 'limit')).toMatchObject({
       type: 'integer',
       description: 'Maximum sessions to return, 1-100. Defaults to 20.',
     });
-    expect(patch(tools.session_list, 'titles')).toMatchObject({ type: 'boolean' });
-    expect(patch(tools.session_list, 'include_archived')).toMatchObject({ type: 'boolean' });
-    expect(patch(tools.session_get, 'messages')).toMatchObject({
-      type: 'integer',
-      description:
-        'How many of the newest visible user and assistant messages to include, 0-50. Defaults to 10; 0 returns metadata only.',
+    expect(property(tools.session_get, 'session_id')).toMatchObject({ type: 'string' });
+    expect(property(tools.session_create, 'cwd')).toMatchObject({ type: 'string' });
+    expect(property(tools.session_send, 'mode')).toMatchObject({
+      type: 'string',
+      enum: ['queue', 'steer'],
     });
+    expect(property(tools.session_send, 'text')).toMatchObject({
+      type: 'string',
+      description: 'Reminder text; wrapped in a system-reminder frame.',
+    });
+    expect(property(tools.session_archive, 'stop_activity')).toMatchObject({ type: 'boolean' });
+    expect(property(tools.session_pin, 'remove')).toMatchObject({ type: 'boolean' });
+  });
+
+  it('说明与参数文案不含 profile', () => {
+    for (const [name, tool] of Object.entries(definitions())) {
+      expect(tool.description.toLowerCase()).not.toContain('profile');
+      const properties = (tool.parameters as { properties?: Record<string, unknown> }).properties;
+      for (const parameter of Object.values(properties ?? {})) {
+        expect(JSON.stringify(parameter).toLowerCase()).not.toContain('profile');
+      }
+    }
   });
 
   it('渲染只返回 text 内容块', () => {

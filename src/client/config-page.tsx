@@ -1,5 +1,5 @@
 /**
- * 插件面板配置页：`summary` 一行描述，`page` 用官方开关控件渲染六个工具开关。
+ * 插件面板配置页：`summary` 一行描述，`page` 用官方开关控件渲染十一个工具开关。
  * 导出 ConfigPage 与其 props。
  */
 
@@ -10,42 +10,29 @@ import { SettingsForm, Switch } from '@deepseek-ai/dsh-client-ui-primitives';
 import type { InjectFace, PropsLocale, PropsRuntime } from '@deepseek-ai/dsh-client-ui-slots';
 import type { CSSProperties } from 'react';
 
-import { TOOL_NAMES } from '../constants.ts';
+import { TOOL_NAMES, type ToolName } from '../constants.ts';
 import type { ConfigPageInjected } from './config-form.ts';
-import type { NS } from './locales.ts';
+import type { MetaToolsKey, NS } from './locales.ts';
 
 /** 配置页组件 props：行配置页的运行时值、字典与注入面。 */
 export type ConfigPageProps = PropsRuntime<'plugins.row.config'> &
   PropsLocale<typeof NS> &
   InjectFace<ConfigPageInjected>;
 
-/** 每个工具的文案键。 */
-const TOOL_TEXT = {
-  workspace_list: {
-    title: 'config.workspace_list.title',
-    description: 'config.workspace_list.description',
-  },
-  workspace_create: {
-    title: 'config.workspace_create.title',
-    description: 'config.workspace_create.description',
-  },
-  workspace_remove: {
-    title: 'config.workspace_remove.title',
-    description: 'config.workspace_remove.description',
-  },
-  workspace_rename: {
-    title: 'config.workspace_rename.title',
-    description: 'config.workspace_rename.description',
-  },
-  session_list: {
-    title: 'config.session_list.title',
-    description: 'config.session_list.description',
-  },
-  session_get: {
-    title: 'config.session_get.title',
-    description: 'config.session_get.description',
-  },
-} as const;
+/** 每个工具的单行标签键。 */
+const TOOL_LABEL = {
+  workspace_list: 'config.workspace_list.label',
+  workspace_create: 'config.workspace_create.label',
+  workspace_remove: 'config.workspace_remove.label',
+  workspace_rename: 'config.workspace_rename.label',
+  session_list: 'config.session_list.label',
+  session_get: 'config.session_get.label',
+  session_create: 'config.session_create.label',
+  session_stop: 'config.session_stop.label',
+  session_send: 'config.session_send.label',
+  session_pin: 'config.session_pin.label',
+  session_archive: 'config.session_archive.label',
+} as const satisfies Record<ToolName, MetaToolsKey>;
 
 /** 表单框架文案。 */
 function formLabels(t: ConfigPageProps['t']): SettingsFormLabels {
@@ -61,7 +48,7 @@ function formLabels(t: ConfigPageProps['t']): SettingsFormLabels {
 /**
  * 渲染本插件在“插件”页的行配置。
  * @param props - 视图名、已暂存的表单，以及编辑、保存与放弃动作。
- * @returns `page` 渲染六个开关，`summary` 渲染该行缺失描述时的一行文案。
+ * @returns `page` 渲染十一个开关，`summary` 渲染该行缺失描述时的一行文案。
  */
 export function ConfigPage(props: ConfigPageProps) {
   const { t } = props;
@@ -76,17 +63,14 @@ export function ConfigPage(props: ConfigPageProps) {
       onDiscard={props.discard}
     >
       {TOOL_NAMES.map((tool) => {
-        const title = t(TOOL_TEXT[tool].title);
+        const label = t(TOOL_LABEL[tool]);
         return (
           <div key={tool} data-dsh-meta-tools-config={tool} style={rowStyle}>
-            <div style={textStyle}>
-              <span style={titleStyle}>{title}</span>
-              <p style={descriptionStyle}>{t(TOOL_TEXT[tool].description)}</p>
-            </div>
+            <span style={labelStyle}>{label}</span>
             <Switch
               checked={state[tool].text === 'true'}
               disabled={disabled}
-              label={title}
+              label={label}
               onChange={(next) => {
                 props.edit(tool, next ? 'true' : 'false');
               }}
@@ -98,7 +82,7 @@ export function ConfigPage(props: ConfigPageProps) {
   );
 }
 
-/** 开关行：标题与说明在左，开关在右，与官方配置页的开关行一致。 */
+/** 开关行：标签在左，开关在右，与官方配置页的开关行一致。 */
 const rowStyle: CSSProperties = {
   display: 'flex',
   alignItems: 'center',
@@ -107,26 +91,10 @@ const rowStyle: CSSProperties = {
   padding: '12px 0',
 };
 
-/** 开关行的文字列。 */
-const textStyle: CSSProperties = {
-  display: 'flex',
-  flexDirection: 'column',
-  gap: 4,
-  minWidth: 0,
-};
-
-/** 字段标题：13px、中等字重。 */
-const titleStyle: CSSProperties = {
+/** 单行标签：13px、中等字重。 */
+const labelStyle: CSSProperties = {
   fontSize: 13,
   fontWeight: 500,
   lineHeight: 1.5,
   color: 'var(--dsw-alias-label-primary)',
-};
-
-/** 字段说明：12px、次级文字色。 */
-const descriptionStyle: CSSProperties = {
-  margin: 0,
-  fontSize: 12,
-  lineHeight: '18px',
-  color: 'var(--dsw-alias-label-secondary)',
 };

@@ -233,6 +233,11 @@ export function makeClientCtx() {
             workspace_rename: true,
             session_list: true,
             session_get: true,
+            session_create: true,
+            session_stop: true,
+            session_send: true,
+            session_pin: true,
+            session_archive: true,
           },
         });
         state._configFormScopes.push(fake);

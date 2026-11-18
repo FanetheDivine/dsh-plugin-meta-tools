@@ -5,7 +5,7 @@
   "main": "./dist/index.mjs",
   "module": "./dist/index.mjs",
   "types": "./dist/index.d.ts",
-  "description": "Model-facing tools for the workspaces and sessions of this DSH profile, with per-tool switches in the plugin panel.",
+  "description": "Meta tools for workspaces and sessions, with per-tool switches in the plugin panel.",
   "icon": "./icon.svg",
   "keywords": [
     "dsh",

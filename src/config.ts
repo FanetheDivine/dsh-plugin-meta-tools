@@ -1,5 +1,5 @@
 /**
- * 插件配置：六个以工具名命名的热重载开关、默认值与严格校验。
+ * 插件配置：十一个以工具名命名的热重载开关、默认值与严格校验。
  * 导出 Config、PluginConfig、DEFAULT_CONFIG、resolveConfig 与 readConfig。
  */
 import Schema from '@deepseek-ai/schemastery';
@@ -22,6 +22,16 @@ export interface Config {
   session_list: Volatile<boolean>;
   /** 是否注册 session_get。 */
   session_get: Volatile<boolean>;
+  /** 是否注册 session_create。 */
+  session_create: Volatile<boolean>;
+  /** 是否注册 session_stop。 */
+  session_stop: Volatile<boolean>;
+  /** 是否注册 session_send。 */
+  session_send: Volatile<boolean>;
+  /** 是否注册 session_pin。 */
+  session_pin: Volatile<boolean>;
+  /** 是否注册 session_archive。 */
+  session_archive: Volatile<boolean>;
 }
 
 /**
@@ -35,12 +45,17 @@ export const Config: Schema<Config> = Schema.object({
   workspace_rename: Schema.boolean().default(DEFAULT_SWITCH).volatile(),
   session_list: Schema.boolean().default(DEFAULT_SWITCH).volatile(),
   session_get: Schema.boolean().default(DEFAULT_SWITCH).volatile(),
+  session_create: Schema.boolean().default(DEFAULT_SWITCH).volatile(),
+  session_stop: Schema.boolean().default(DEFAULT_SWITCH).volatile(),
+  session_send: Schema.boolean().default(DEFAULT_SWITCH).volatile(),
+  session_pin: Schema.boolean().default(DEFAULT_SWITCH).volatile(),
+  session_archive: Schema.boolean().default(DEFAULT_SWITCH).volatile(),
 }) as unknown as Schema<Config>;
 
 /** 配置项的实时取值：工具名到开关的映射。 */
 export type PluginConfig = { [K in ToolName]: boolean };
 
-/** 默认配置：六个工具全部开启。 */
+/** 默认配置：十一个工具全部开启。 */
 export const DEFAULT_CONFIG: Readonly<PluginConfig> = Object.freeze({
   workspace_list: DEFAULT_SWITCH,
   workspace_create: DEFAULT_SWITCH,
@@ -48,6 +63,11 @@ export const DEFAULT_CONFIG: Readonly<PluginConfig> = Object.freeze({
   workspace_rename: DEFAULT_SWITCH,
   session_list: DEFAULT_SWITCH,
   session_get: DEFAULT_SWITCH,
+  session_create: DEFAULT_SWITCH,
+  session_stop: DEFAULT_SWITCH,
+  session_send: DEFAULT_SWITCH,
+  session_pin: DEFAULT_SWITCH,
+  session_archive: DEFAULT_SWITCH,
 });
 
 /** 合法的配置键：全部工具名。 */

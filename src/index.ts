@@ -1,17 +1,24 @@
 /**
  * 插件入口。导出宿主约定的 name、inject、apply 与 Config。
- * apply 读取配置、按可用服务建立工具组，并在配置热重载时重建注册。
+ * apply 读取配置、按可用服务建立四个工具组，并在配置热重载时重建注册。
  */
 import { type PluginConfig, readConfig } from './config.ts';
+import { PLUGIN_LABEL, TOOL_NAMES, type ToolName, WORKSPACE_TOOL_NAMES } from './constants.ts';
+import { buildSessionLogTool } from './session-log.ts';
 import {
-  PLUGIN_LABEL,
-  SESSION_TOOL_NAMES,
-  TOOL_NAMES,
-  type ToolName,
-  WORKSPACE_TOOL_NAMES,
-} from './constants.ts';
+  buildSessionArchiveTool,
+  buildSessionCreateTool,
+  buildSessionPinTool,
+  buildSessionSendTool,
+  buildSessionStopTool,
+} from './session-ops.ts';
 import { buildSessionTool } from './session-tools.ts';
-import type { Context, SessionQueryLike, WorkspaceRegistryLike } from './types.ts';
+import type {
+  Context,
+  SessionControllerLike,
+  SessionQueryLike,
+  WorkspaceRegistryLike,
+} from './types.ts';
 import { buildWorkspaceTool } from './workspace-tools.ts';
 
 export { Config } from './config.ts';
@@ -45,12 +52,18 @@ export function apply(ctx: Context, config?: unknown): void {
     const registry = scoped.get('workspaceRegistry') as WorkspaceRegistryLike | undefined;
     if (registry === undefined) return;
     const disposers: Array<() => void> = [];
-    /** 释放旧注册并按当前开关注册工作区工具。 */
+    /** 释放旧注册并按当前开关注册工作区、置顶与归档工具。 */
     const sync = (): void => {
       for (const dispose of disposers.splice(0)) dispose();
       for (const tool of WORKSPACE_TOOL_NAMES) {
         if (!current[tool]) continue;
         disposers.push(scoped.tools.register(buildWorkspaceTool(tool, { ctx: scoped, registry })));
+      }
+      if (current.session_pin) {
+        disposers.push(scoped.tools.register(buildSessionPinTool({ registry })));
+      }
+      if (current.session_archive) {
+        disposers.push(scoped.tools.register(buildSessionArchiveTool({ registry })));
       }
     };
     groups.push(sync);
@@ -69,14 +82,16 @@ export function apply(ctx: Context, config?: unknown): void {
     const sessionQuery = scoped.get('sessionQuery') as SessionQueryLike | undefined;
     if (sessionQuery === undefined) return;
     const disposers: Array<() => void> = [];
-    /** 释放旧注册并按当前开关注册会话工具。 */
+    /** 释放旧注册并按当前开关注册会话读取工具。 */
     const sync = (): void => {
       for (const dispose of disposers.splice(0)) dispose();
-      for (const tool of SESSION_TOOL_NAMES) {
-        if (!current[tool]) continue;
+      if (current.session_list) {
         disposers.push(
-          scoped.tools.register(buildSessionTool(tool, { ctx: scoped, sessionQuery })),
+          scoped.tools.register(buildSessionTool('session_list', { ctx: scoped, sessionQuery })),
         );
+      }
+      if (current.session_get) {
+        disposers.push(scoped.tools.register(buildSessionLogTool({ ctx: scoped, sessionQuery })));
       }
     };
     groups.push(sync);
@@ -87,7 +102,36 @@ export function apply(ctx: Context, config?: unknown): void {
         const index = groups.indexOf(sync);
         if (index >= 0) groups.splice(index, 1);
       },
-      'dsh-plugin-meta-tools: session tools',
+      'dsh-plugin-meta-tools: session query tools',
+    );
+  });
+
+  ctx.inject(['sessionController'], (scoped) => {
+    const sessionController = scoped.get('sessionController') as SessionControllerLike | undefined;
+    if (sessionController === undefined) return;
+    const disposers: Array<() => void> = [];
+    /** 释放旧注册并按当前开关注册会话控制工具。 */
+    const sync = (): void => {
+      for (const dispose of disposers.splice(0)) dispose();
+      if (current.session_create) {
+        disposers.push(scoped.tools.register(buildSessionCreateTool({ sessionController })));
+      }
+      if (current.session_stop) {
+        disposers.push(scoped.tools.register(buildSessionStopTool({ sessionController })));
+      }
+      if (current.session_send) {
+        disposers.push(scoped.tools.register(buildSessionSendTool({ sessionController })));
+      }
+    };
+    groups.push(sync);
+    sync();
+    scoped.effect(
+      () => () => {
+        for (const dispose of disposers.splice(0)) dispose();
+        const index = groups.indexOf(sync);
+        if (index >= 0) groups.splice(index, 1);
+      },
+      'dsh-plugin-meta-tools: session control tools',
     );
   });
 
