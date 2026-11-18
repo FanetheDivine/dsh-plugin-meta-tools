@@ -26,6 +26,33 @@ describe('apply 接线', () => {
     );
   });
 
+  it('服务可用时注册四个工作区工具', () => {
+    const ctx = makeCtx();
+    ctx._setService('workspaceRegistry', {});
+    apply(ctx, {});
+    expect(ctx._activeToolNames()).toEqual([
+      'workspace_list',
+      'workspace_create',
+      'workspace_remove',
+      'workspace_rename',
+    ]);
+  });
+
+  it('关闭单个开关只注销该工具', () => {
+    const ctx = makeCtx();
+    ctx._setService('workspaceRegistry', {});
+    apply(ctx, { workspace_list: false, workspace_create: false });
+    expect(ctx._activeToolNames()).toEqual(['workspace_remove', 'workspace_rename']);
+  });
+
+  it('服务晚到时补注册', () => {
+    const ctx = makeCtx();
+    apply(ctx, {});
+    expect(ctx._activeToolNames()).toEqual([]);
+    ctx._setService('workspaceRegistry', {});
+    expect(ctx._activeToolNames()).toHaveLength(4);
+  });
+
   it('热重载事件读取新配置并更新日志', () => {
     const ctx = makeCtx();
     const config = { session_get: volatile(true), workspace_list: volatile(true) };

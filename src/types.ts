@@ -15,6 +15,15 @@ export type { PluginConfig } from './config.ts';
 /** 宿主类型。插件内统一从这里导入。 */
 export type { Agent, Context, Events, ToolDefinition, ToolRunContext, Volatile };
 
+/** 工具返回给宿主的 JSON 值。 */
+export type ToolJsonValue =
+  | string
+  | number
+  | boolean
+  | null
+  | ToolJsonValue[]
+  | { [key: string]: ToolJsonValue };
+
 /** 工作区注册表暴露的单个工作区。字段与宿主 0.2.2-rc.3 一致。 */
 export interface WorkspaceLike {
   /** 稳定的注册 id。 */

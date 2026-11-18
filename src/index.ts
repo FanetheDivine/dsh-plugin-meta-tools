@@ -1,10 +1,11 @@
 /**
  * 插件入口。导出宿主约定的 name、inject、apply 与 Config。
- * 本阶段先完成配置读取与热重载接线，工具组随后接入。
+ * apply 读取配置、按可用服务建立工具组，并在配置热重载时重建注册。
  */
 import { type PluginConfig, readConfig } from './config.ts';
-import { PLUGIN_LABEL, type ToolName, TOOL_NAMES } from './constants.ts';
-import type { Context } from './types.ts';
+import { PLUGIN_LABEL, type ToolName, TOOL_NAMES, WORKSPACE_TOOL_NAMES } from './constants.ts';
+import type { Context, WorkspaceRegistryLike } from './types.ts';
+import { buildWorkspaceTool } from './workspace-tools.ts';
 
 export { Config } from './config.ts';
 
@@ -20,15 +21,42 @@ function enabledTools(config: Readonly<PluginConfig>): ToolName[] {
 }
 
 /**
- * 插件启用时调用：读取配置并监听热重载。
+ * 插件启用时调用：读取配置、按服务建立工具组并监听热重载。
  * `config` 的字段是热重载引用，保存配置后宿主触发 loader/volatile-update。
  */
 export function apply(ctx: Context, config?: unknown): void {
   let current: Readonly<PluginConfig> = readConfig(config);
+  /** 各服务组的同步函数：配置变化时逐组释放旧注册并按新开关注册。 */
+  const groups: Array<() => void> = [];
+
+  /** 打印当前开启的工具。 */
   const logState = (): void => {
     ctx.logger.info(`[${PLUGIN_LABEL}] apply: enabled=${enabledTools(current).join(',')}`);
   };
-  logState();
+
+  ctx.inject(['workspaceRegistry'], (scoped) => {
+    const registry = scoped.get('workspaceRegistry') as WorkspaceRegistryLike | undefined;
+    if (registry === undefined) return;
+    const disposers: Array<() => void> = [];
+    /** 释放旧注册并按当前开关注册工作区工具。 */
+    const sync = (): void => {
+      for (const dispose of disposers.splice(0)) dispose();
+      for (const tool of WORKSPACE_TOOL_NAMES) {
+        if (!current[tool]) continue;
+        disposers.push(scoped.tools.register(buildWorkspaceTool(tool, { ctx: scoped, registry })));
+      }
+    };
+    groups.push(sync);
+    sync();
+    scoped.effect(
+      () => () => {
+        for (const dispose of disposers.splice(0)) dispose();
+        const index = groups.indexOf(sync);
+        if (index >= 0) groups.splice(index, 1);
+      },
+      'dsh-plugin-meta-tools: workspace tools',
+    );
+  });
 
   ctx.on('loader/volatile-update', () => {
     try {
@@ -38,5 +66,8 @@ export function apply(ctx: Context, config?: unknown): void {
       return;
     }
     logState();
+    for (const sync of [...groups]) sync();
   });
+
+  logState();
 }
