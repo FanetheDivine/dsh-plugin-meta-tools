@@ -83,7 +83,7 @@ export interface SessionHeaderLike {
   /** 会话使用的预设。 */
   readonly agentPreset?: string;
   /** 父会话引用；subagent 会话带此字段。 */
-  readonly parentSession?: { readonly id: string };
+  readonly parentSession?: string;
   /** 会话来源。 */
   readonly origin?: 'subagent';
   /** 是否为种子会话。 */
@@ -144,8 +144,11 @@ export interface SessionTitleObservationLike {
   readonly status: 'fulfilled' | 'rejected';
   /** 成功时的头部与标题。 */
   readonly value?: {
-    /** 最新折叠标题。 */
-    readonly title?: string;
+    /** 最新标题快照；日志没有标题时省略。 */
+    readonly title?: {
+      /** 规范化后的非空标题。 */
+      readonly title: string;
+    };
   };
 }
 

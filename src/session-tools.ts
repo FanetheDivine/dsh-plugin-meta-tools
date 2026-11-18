@@ -67,7 +67,7 @@ function rootOf(
   let current = record;
   const seen = new Set<string>();
   for (;;) {
-    const parentId = current.header.parentSession?.id;
+    const parentId = current.header.parentSession;
     if (parentId === undefined || seen.has(current.header.id)) return current;
     seen.add(current.header.id);
     const parent = byId.get(parentId);
@@ -100,9 +100,8 @@ async function readTitles(
   try {
     const results = await sessionQuery.readTitleSnapshots(ids, signal);
     for (const result of results) {
-      if (result.status === 'fulfilled' && typeof result.value?.title === 'string') {
-        titles.set(result.sessionId, result.value.title);
-      }
+      const title = result.status === 'fulfilled' ? result.value?.title?.title : undefined;
+      if (typeof title === 'string') titles.set(result.sessionId, title);
     }
     return { titles };
   } catch (error) {

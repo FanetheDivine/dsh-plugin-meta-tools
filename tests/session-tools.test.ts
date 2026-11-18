@@ -19,7 +19,7 @@ function makeRecord(
       id,
       createdAt,
       ...(overrides.cwd === undefined ? {} : { cwd: overrides.cwd }),
-      ...(overrides.parentId === undefined ? {} : { parentSession: { id: overrides.parentId } }),
+      ...(overrides.parentId === undefined ? {} : { parentSession: overrides.parentId }),
     },
     live: overrides.live ?? false,
     persisted: true,
@@ -39,7 +39,7 @@ function makeQuery(options: {
         const title = options.titles?.[id];
         return title === undefined
           ? { sessionId: id, status: 'rejected' as const }
-          : { sessionId: id, status: 'fulfilled' as const, value: { title } };
+          : { sessionId: id, status: 'fulfilled' as const, value: { title: { title } } };
       });
     },
   );
