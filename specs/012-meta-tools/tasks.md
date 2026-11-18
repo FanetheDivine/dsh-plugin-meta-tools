@@ -100,6 +100,16 @@
 - [X] T042 向用户报告验收结果并提醒 npm Trusted Publisher 绑定
 - [X] T043 本阶段提交：`chore(meta-tools): verify build and real device`
 
+## Phase 8: 界面文案本地化约束
+
+**Purpose**: 落实宪章原则 IX：界面文案全部来自 locale 字典。
+
+- [X] T044 [P] [US3] 检查 `src/client/config-page.tsx` 与 `config-form.ts`，界面文案全部经 `t()` 读取，无字面量
+- [X] T045 [US3] 在 `tests/client.test.ts` 断言中英字典键集一致、无空文案，且六个工具都有标题与说明
+- [X] T046 [P] [US3] 把 `icon.svg` 的 `title` 改为包名，静态资源不承载可翻译文案
+- [X] T047 [US4] 宪章新增原则 IX 并升级到 1.10.0，同步 spec、plan 与文档
+- [X] T048 运行 `pnpm format && pnpm check && pnpm build` 后提交
+
 ## Dependencies
 
 ```text
@@ -110,6 +120,7 @@ Phase 1 (T001–T005)
        │         └─ Phase 5 US3 (T024–T029)
        └─ Phase 6 US4 (T031–T036) 可与 Phase 5 并行
             └─ Phase 7 (T038–T043)
+                 └─ Phase 8 (T044–T048)
 ```
 
 - 前置阻塞：所有用户故事都依赖 Phase 2 的 `config.ts`、`types.ts` 与测试 helper。
@@ -137,4 +148,4 @@ T035 tests/package-pack.test.ts 与 T036 tests/client-bundle.test.ts 分别编�
 
 - **MVP**: Phase 1–3 交付四个工作区工具，已可独立验证。
 - **增量**: 每个阶段结束运行相关测试并提交，避免大块改动。
-- **最终**: Phase 7 统一运行质量门禁与实机验证，再交给用户验收。
+- **最终**: Phase 7 运行质量门禁与实机验证，Phase 8 收口界面文案本地化约束，再交给用户验收。

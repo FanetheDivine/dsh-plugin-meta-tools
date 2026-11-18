@@ -71,7 +71,7 @@
 | `tests/session-tools.test.ts` | 两个会话工具的筛选、分页、标题失败、截断与预算 |
 | `tests/contract.test.ts` | 六个工具的名称、说明、参数与输出 schema |
 | `tests/config-form.test.ts` | 配置页草稿、保存、恢复默认与卸载 |
-| `tests/client.test.ts` | 字典、配置页槽位注册与渲染 |
+| `tests/client.test.ts` | 字典键集与空文案、配置页槽位注册与渲染 |
 | `tests/client-bundle.test.ts` | `dist/client.js` 的注册契约与导出 |
 | `tests/package-pack.test.ts` | npm 包只含发布所需文件 |
 | `tests/release-archive.test.mjs` | CHANGELOG 归档计划 |

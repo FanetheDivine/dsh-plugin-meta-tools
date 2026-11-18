@@ -68,6 +68,7 @@ DSH 插件是一个 npm 包。宿主按约定的入口加载宿主部分，按 `
 | `dsh.client.inject` | 先加载的客户端包：locale、plugin-manager、renderer、settings |
 | `exports["./client"]` | 浏览器产物 `dist/client.js` |
 
+- 所有界面文案来自 `src/client/locales.ts`；中文字典是键集事实源，英文字典必须同键，组件只通过 `t(key)` 读取。
 - `plugins.row.config` 槽位的键是 `<包名>#<行 id>`，当前两者相同。
 - 表单由 `SettingsFormModel` 暂存六个开关，`SettingsForm` 与 `Switch` 渲染，只在保存时写一次。
 - 控件使用 `--dsw-*` 主题令牌，随明暗主题与语言切换。

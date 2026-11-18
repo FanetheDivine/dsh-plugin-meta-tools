@@ -139,6 +139,7 @@
 - **FR-020**: 发布内容测试 MUST 确认 `dist`、`cordis.patch.yml`、`README.md` 与展示资源进包，`src`、`tests`、`scripts` 不进包。
 - **FR-021**: 宪章与 AGENTS MUST 同步转化；发布设置 MUST 按确认结果执行：`version` 设为 0.1.0、CI 的 `publish` 任务恢复 tag 触发、删除 001–011 历史 spec 与 `CHANGELOG.md` 内容，并输出 Trusted Publisher 绑定提醒。
 - **FR-022**: 全部 `@deepseek-ai/dsh-*` 依赖 MUST 保持 `0.2.2-rc.3`，不做版本升级。
+- **FR-023**: 前端用户可见文案 MUST 全部来自 locale 字典；组件与逻辑代码 MUST NOT 含界面字符串字面量；中英文字典键集 MUST 一致，缺键或空文案 MUST 使测试失败。
 
 ### Key Entities
 
@@ -159,6 +160,7 @@
 - **SC-006**: 安装到测试 profile 后，新会话第一个请求即可看到六个工具，禁用插件行后同类请求不再包含它们。
 - **SC-007**: 仓库中检索不到 `demo_echo`、前端示例行等模板示例标识；历史 spec 与 changelog 按确认结果清空。
 - **SC-008**: 发布设置核对通过：版本 0.1.0、CI 发布任务由 tag 触发、Trusted Publisher 提醒已给出。
+- **SC-009**: 配置页在中文与英文下所有文案均由字典渲染，组件中检索不到界面字符串字面量。
 
 ## Assumptions
 

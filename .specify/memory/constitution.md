@@ -1,12 +1,11 @@
 <!--
 Sync Impact Report
-- Version change: 1.8.0 → 1.9.0
-- Modified principles:
-  - I. 宿主契约：区分必需服务与可选服务的声明方式
-  - VII. 模板定位 → VII. 工具契约：仓库定位改为实际插件
-- Added principles: 无
+- Version change: 1.9.0 → 1.10.0
+- Added principles:
+  - IX. 界面文案与本地化：前端用户可见文案全部来自 locale 字典
+- Modified principles: 无
 - Modified sections: 无
-- Removed sections: 模板转化条款
+- Removed sections: 无
 - Templates requiring updates: 无，plan、spec、tasks 模板在运行时读取本文件
 - Follow-up TODOs: 无
 -->
@@ -136,6 +135,17 @@ Sync Impact Report
 
 理由：其他用户克隆仓库后，每个链接、路径与依赖都必须能在其环境中解析。
 
+### IX. 界面文案与本地化
+
+- 所有用户可见的前端文案 MUST 来自 locale 字典；组件、样式与逻辑代码 MUST NOT 出现界面字符串字面量。
+- `src/client/locales.ts` 的中文字典是键集事实源；英文字典 MUST 覆盖同一键集，缺键或空文案 MUST 使测试失败。
+- 字典 MUST 在浏览器入口通过 `ctx.locale.register(<包名>, { zh, en })` 注册，组件只通过 `t(key)` 读取。
+- 新增或修改界面文案 MUST 同时更新中英文字典与配置页测试。
+- 图标、图片等静态资源 MUST NOT 承载需要翻译的文案；可访问名称使用包名或与界面语言无关的标识。
+- 模型面向的工具契约文案（工具名、说明、参数说明、错误与渲染文本）不经过前端 locale，按原则 VII 保持英文并与基准兼容。
+
+理由：界面语言由宿主切换，硬编码文案会与语言设置不一致，也会绕开字典完整性检查。
+
 ## Governance
 
 优先级从高到低：
@@ -160,4 +170,4 @@ Sync Impact Report
   - PATCH：措辞澄清。
 - `/speckit-plan` 的 Constitution Check 与 `/speckit-analyze` MUST 逐条核对本宪章。
 
-**Version**: 1.9.0 | **Ratified**: 2026-11-17 | **Last Amended**: 2026-11-18
+**Version**: 1.10.0 | **Ratified**: 2026-11-17 | **Last Amended**: 2026-11-18
