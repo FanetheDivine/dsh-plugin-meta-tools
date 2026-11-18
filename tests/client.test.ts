@@ -24,10 +24,10 @@ function translate(dict: Record<string, string>): TranslateNS<typeof NS> {
     );
 }
 
-/** 六个开关的字段状态。 */
+/** 十一个开关的字段状态。 */
 type SwitchFieldStates = { [K in (typeof TOOL_NAMES)[number]]: SettingsFieldState };
 
-/** 六个开关的默认字段状态。 */
+/** 十一个开关的默认字段状态。 */
 function fieldStates(text = 'true'): SwitchFieldStates {
   return Object.fromEntries(
     TOOL_NAMES.map((tool) => [tool, { text, overridden: false, invalid: false }]),
@@ -112,32 +112,45 @@ describe('字典', () => {
     expect(Object.values(en).every((text) => text.trim() !== '')).toBe(true);
   });
 
-  it('六个工具都有标题与说明', () => {
+  it('十一个工具都有单行标签', () => {
     for (const tool of TOOL_NAMES) {
-      expect((zh as Record<string, string>)[`config.${tool}.title`]).toBeTruthy();
-      expect((zh as Record<string, string>)[`config.${tool}.description`]).toBeTruthy();
-      expect((en as Record<string, string>)[`config.${tool}.title`]).toBeTruthy();
-      expect((en as Record<string, string>)[`config.${tool}.description`]).toBeTruthy();
+      expect((zh as Record<string, string>)[`config.${tool}.label`]).toBeTruthy();
+      expect((en as Record<string, string>)[`config.${tool}.label`]).toBeTruthy();
     }
+  });
+
+  it('十一段标签按用户清单排列', () => {
+    const labels = TOOL_NAMES.map((tool) => (zh as Record<string, string>)[`config.${tool}.label`]);
+    expect(labels).toEqual([
+      '获取工作区信息',
+      '注册工作区',
+      '删除工作区',
+      '重命名工作区',
+      '获取会话信息',
+      '获取会话日志',
+      '新建会话',
+      '停止会话',
+      '发送消息',
+      '置顶会话',
+      '归档会话',
+    ]);
   });
 });
 
 describe('配置页', () => {
   it('summary 渲染一行描述', () => {
-    expect(renderConfigPage('summary', zh)).toContain('选择向模型开放哪些工作区与会话工具');
-    expect(renderConfigPage('summary', en)).toContain(
-      'Choose which workspace and session tools the model can call',
-    );
+    expect(renderConfigPage('summary', zh)).toContain('选择向模型开放哪些工具');
+    expect(renderConfigPage('summary', en)).toContain('Choose which tools the model can call');
   });
 
-  it('page 渲染六个开关、标题与保存按钮', () => {
+  it('page 渲染十一个开关、标签与保存按钮', () => {
     const html = renderConfigPage('page', zh);
     for (const tool of TOOL_NAMES) {
       expect(html).toContain(`data-dsh-meta-tools-config="${tool}"`);
-      expect(html).toContain((zh as Record<string, string>)[`config.${tool}.title`]);
+      expect(html).toContain((zh as Record<string, string>)[`config.${tool}.label`]);
     }
-    expect(html.match(/role="switch"/g)).toHaveLength(6);
-    expect(html.match(/aria-checked="true"/g)).toHaveLength(6);
+    expect(html.match(/role="switch"/g)).toHaveLength(11);
+    expect(html.match(/aria-checked="true"/g)).toHaveLength(11);
     expect(html).toContain('保存');
   });
 
@@ -146,20 +159,21 @@ describe('配置页', () => {
     state.session_get = { text: 'false', overridden: false, invalid: false };
     const html = renderConfigPage('page', zh, state);
     expect(html.match(/aria-checked="false"/g)).toHaveLength(1);
-    expect(html.match(/aria-checked="true"/g)).toHaveLength(5);
+    expect(html.match(/aria-checked="true"/g)).toHaveLength(10);
   });
 
   it('page 渲染英文文案', () => {
     const html = renderConfigPage('page', en);
-    expect(html).toContain('List workspaces');
-    expect(html).toContain('Read a session');
+    expect(html).toContain('Get workspace info');
+    expect(html).toContain('Get session log');
+    expect(html).toContain('Archive a session');
     expect(html).toContain('Save');
   });
 
   it('只读时禁用开关并显示只读提示', () => {
     const html = renderConfigPage('page', zh, pageState({ writable: false }));
     expect(html).toContain('此部署以只读方式保存设置。');
-    expect(html.match(/<button[^>]*role="switch"[^>]*disabled/g)).toHaveLength(6);
+    expect(html.match(/<button[^>]*role="switch"[^>]*disabled/g)).toHaveLength(11);
   });
 
   it('命名空间未下发时显示不可用文案', () => {

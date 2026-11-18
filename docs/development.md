@@ -8,7 +8,7 @@
 ## 本地加载
 
 1. 运行 `pnpm dev`，tsdown 监听 `src/` 并重建 `dist/index.mjs` 与 `dist/client.js`。
-2. 在 profile 的 `cordis.patch.yml` 中加入：
+2. 在 `cordis.patch.yml` 中加入：
 
 ```yaml
 - insert:
@@ -30,7 +30,7 @@
     ignored: ["**/node_modules"]
 ```
 
-- 修改补丁后无需重启 DSH，运行中的 profile 会重新应用补丁。
+- 修改补丁后无需重启 DSH，运行中的实例会重新应用补丁。
 - 插件行指向新路径时同时修改 `id`，确保宿主加载新路径的模块。
 - 仓库路径含 `.dsh` 等点目录时，去掉默认的 `**/.*` 忽略规则。
 
@@ -80,10 +80,12 @@
 | 文件 | 覆盖内容 |
 | --- | --- |
 | `tests/plugin.test.ts` | 入口契约、开关注册与注销、可选服务缺失与晚到、热重载 |
-| `tests/config.test.ts` | 六个配置键的默认值、严格校验、冻结与实时读取 |
+| `tests/config.test.ts` | 十一个配置键的默认值、严格校验、冻结与实时读取 |
 | `tests/workspace-tools.test.ts` | 四个工作区工具的成功、错误与渲染 |
-| `tests/session-tools.test.ts` | 两个会话工具的筛选、分页、标题失败、截断与预算 |
-| `tests/contract.test.ts` | 六个工具的名称、说明、参数与输出 schema |
+| `tests/session-tools.test.ts` | `session_list` 的筛选、分页、标题查询、调用方排除与 subagent 归并 |
+| `tests/session-log.test.ts` | `session_get` 的会话树、JSONL 内容、临时目录与落盘屏障 |
+| `tests/session-ops.test.ts` | 新建、停止、发送提醒、置顶与归档 |
+| `tests/contract.test.ts` | 十一个工具的名称、说明、参数与输出 schema |
 | `tests/config-form.test.ts` | 配置页草稿、保存、恢复默认与卸载 |
 | `tests/client.test.ts` | 字典键集与空文案、配置页槽位注册与渲染 |
 | `tests/client-bundle.test.ts` | `dist/client.js` 的注册契约与导出（产物测试） |
@@ -133,20 +135,22 @@ DSH 从 `.dsh/skills/` 加载 `speckit-*` skill，在对话框输入 `/` 调用�
 ## 文件地图
 
 ```text
-cordis.patch.yml            # 插件行，dsh plugin add 时插入 profile
+cordis.patch.yml            # 插件行，dsh plugin add 时插入
 locale/                     # 插件页标题、描述与详情
 icon.svg                    # 插件图标
 src/
 ├── index.ts                # 打包入口：name、inject、apply、Config 与工具组接线
-├── config.ts               # 六个开关的 Config schema、默认值、严格校验与热重载读取
+├── config.ts               # 十一个开关的 Config schema、默认值、严格校验与热重载读取
 ├── constants.ts            # 插件标识、工具名与结果上限
 ├── types.ts                # 宿主类型再导出与工作区/会话服务契约
-├── utils.ts                # 对象判断、时间格式化、数值夹取与文本拼接
+├── utils.ts                # 对象判断、时间格式化与数值夹取
 ├── workspace-tools.ts      # 四个工作区工具与渲染
-├── session-tools.ts        # 两个会话工具、标题读取与消息截断
+├── session-tools.ts        # session_list：查询、归并、调用方排除
+├── session-log.ts          # session_get：会话树、JSONL 与临时目录
+├── session-ops.ts          # 新建、停止、发送、置顶与归档
 └── client/
     ├── index.ts            # 浏览器入口：注册字典与配置页
-    ├── config-form.ts      # 六个开关的草稿模型与行键
+    ├── config-form.ts      # 十一个开关的草稿模型与行键
     ├── config-page.tsx     # 配置页的 summary 与 page 视图
     └── locales.ts          # 配置页中英文字典
 dist/                       # 构建产物

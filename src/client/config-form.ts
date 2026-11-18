@@ -1,5 +1,5 @@
 /**
- * 插件面板配置页的草稿模型：用官方 SettingsFormModel 暂存六个热重载开关。
+ * 插件面板配置页的草稿模型：用官方 SettingsFormModel 暂存十一个热重载开关。
  * 导出行键、命名空间、PluginConfigForm 与注入面类型。
  */
 
@@ -21,7 +21,7 @@ export const ROW_KEY = 'dsh-plugin-meta-tools#dsh-plugin-meta-tools';
 /** 行 id。同时是宿主配置的条目 id 与表单命名空间。 */
 export const ROW_ID = 'dsh-plugin-meta-tools';
 
-/** 配置页可编辑的六个开关，取值与宿主 `Config` 的实时值一致。 */
+/** 配置页可编辑的十一个开关，取值与宿主 `Config` 的实时值一致。 */
 export type ConfigFields = { [K in ToolName]: boolean };
 
 /** 配置页读取的草稿与表单状态。 */
@@ -43,11 +43,11 @@ function switchSpec(field: ToolName): SettingsFieldSpec {
   };
 }
 
-/** 六个开关的字段定义，顺序与工具顺序一致。 */
+/** 十一个开关的字段定义，顺序与工具顺序一致。 */
 const SWITCH_SPECS: SettingsFieldSpec[] = TOOL_NAMES.map(switchSpec);
 
 /**
- * 暂存六处编辑，保存时一次写入宿主配置。
+ * 暂存十一个开关的编辑，保存时一次写入宿主配置。
  * 保留模式：离开配置页丢弃草稿，写入只发生在保存。
  */
 export class PluginConfigForm {

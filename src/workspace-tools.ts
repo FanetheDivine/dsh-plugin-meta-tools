@@ -146,7 +146,7 @@ export function buildWorkspaceTool(
       return defineTool({
         name: 'workspace_list',
         description:
-          'List the workspaces (registered project directories) of this DSH profile, with their ids, titles, paths, and session counts. Start here to obtain a workspace id for the other workspace tools.',
+          'List the registered workspaces (project directories) with their ids, titles, paths, and session counts. Start here to obtain a workspace id for the other workspace tools.',
         parameters: {},
         output: { schema: OUTPUT, render: renderWorkspaceList },
         async execute() {
@@ -162,7 +162,7 @@ export function buildWorkspaceTool(
       return defineTool({
         name: 'workspace_create',
         description:
-          'Register an existing absolute directory as a workspace in this DSH profile. Idempotent: a directory that is already registered returns its existing workspace with created false. Nothing is copied, moved, or deleted on disk, and no session is created.',
+          'Register an existing absolute directory as a workspace. Idempotent: a directory that is already registered returns its existing workspace with created false. Nothing is copied, moved, or deleted on disk, and no session is created.',
         parameters: {
           path: {
             type: 'string',
@@ -213,7 +213,7 @@ export function buildWorkspaceTool(
       return defineTool({
         name: 'workspace_remove',
         description:
-          'Remove a workspace registration from this DSH profile. The directory, its files, and every session history stay untouched; its sessions become ungrouped. Re-adding the same directory later creates a fresh workspace with an empty session list.',
+          'Remove a workspace registration. The directory, its files, and every session history stay untouched; its sessions become ungrouped. Re-adding the same directory later creates a fresh workspace with an empty session list.',
         parameters: {
           workspace_id: {
             type: 'string',

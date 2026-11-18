@@ -1,4 +1,4 @@
-/** 零依赖工具函数：对象判断、时间格式化、数值夹取与文本拼接。 */
+/** 零依赖工具函数：对象判断、时间格式化与数值夹取。 */
 
 /** 判断值是否为普通对象。 */
 export function isRecord(value: unknown): value is Record<string, unknown> {

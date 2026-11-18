@@ -1,11 +1,11 @@
-// 配置测试：六个开关的默认值、严格校验、冻结与实时读取。
+// 配置测试：十一个开关的默认值、严格校验、冻结与实时读取。
 import { describe, expect, it } from 'vitest';
 
 import { Config, DEFAULT_CONFIG, readConfig, resolveConfig } from '../src/config.ts';
 import { PLUGIN_LABEL, TOOL_NAMES } from '../src/constants.ts';
 import { volatile } from './helpers.ts';
 
-/** 六个键的完整配置。 */
+/** 十一个键的完整配置。 */
 const ALL_ON = {
   workspace_list: true,
   workspace_create: true,
@@ -13,10 +13,15 @@ const ALL_ON = {
   workspace_rename: true,
   session_list: true,
   session_get: true,
+  session_create: true,
+  session_stop: true,
+  session_send: true,
+  session_pin: true,
+  session_archive: true,
 };
 
 describe('默认值', () => {
-  it('六个工具默认开启', () => {
+  it('十一个工具默认开启', () => {
     expect(resolveConfig({})).toEqual(ALL_ON);
     expect(DEFAULT_CONFIG).toEqual(ALL_ON);
     expect(TOOL_NAMES).toEqual(Object.keys(ALL_ON));

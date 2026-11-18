@@ -1,4 +1,4 @@
-// 配置页草稿模型测试：六个开关的草稿、保存写操作、恢复默认、放弃与卸载。
+// 配置页草稿模型测试：十一个开关的草稿、保存写操作、恢复默认、放弃与卸载。
 import { describe, expect, it } from 'vitest';
 
 import {
@@ -11,7 +11,7 @@ import {
 import { TOOL_NAMES } from '../src/constants.ts';
 import { makeConfigFormScope } from './helpers.ts';
 
-/** 六个开关全开。 */
+/** 十一个开关全开。 */
 const ALL_ON: ConfigFields = {
   workspace_list: true,
   workspace_create: true,
@@ -40,7 +40,7 @@ describe('配置页常量', () => {
 });
 
 describe('配置页草稿', () => {
-  it('六个开关默认开启，起初不脏', () => {
+  it('十一个开关默认开启，起初不脏', () => {
     const current = setup().state();
     for (const tool of TOOL_NAMES) expect(current[tool].text).toBe('true');
     expect(current.dirty).toBe(false);
