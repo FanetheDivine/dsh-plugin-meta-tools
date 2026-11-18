@@ -47,14 +47,14 @@
 | `header.cwd` | string? | 记录的绝对目录 |
 | `header.createdAt` | number | epoch 毫秒 |
 | `header.agentPreset` | string? | 预设 |
-| `header.parentSession` | `{ id }`? | 父会话；subagent 有值 |
+| `header.parentSession` | string? | 父会话 id；subagent 有值 |
 | `header.origin` | `'subagent'`? | 来源 |
 | `live` | boolean | 是否在活动会话表中 |
 | `persisted` | boolean | 是否由持久化后端列出 |
 
 规则：
 
-- 主会话：沿 `parentSession.id` 向上追溯，直到没有父或父不在列表中。
+- 主会话：沿 `parentSession` 字符串向上追溯，直到没有父或父不在列表中。
 - 父链断开时，以能追溯到的最高已知会话为主会话。
 - 同一主会话只占一行。
 
