@@ -53,9 +53,9 @@
 
 ## Phase 5: Polish
 
-- [ ] T012 按 `specs/015-template-docs-sync/quickstart.md` 完成全部验证，检查 `git diff --check` 与当前原则编号引用
-- [ ] T013 修改 `CHANGELOG.md`，记录宪章 `2.0.0`、规则归属与主工作区约束
-- [ ] T014 勾选 `specs/015-template-docs-sync/tasks.md` 的完成任务，运行 `pnpm format && pnpm check`，提交本阶段文件
+- [X] T012 按 `specs/015-template-docs-sync/quickstart.md` 完成全部验证，检查 `git diff --check` 与当前原则编号引用
+- [X] T013 修改 `CHANGELOG.md`，记录宪章 `2.0.0`、规则归属与主工作区约束
+- [X] T014 勾选 `specs/015-template-docs-sync/tasks.md` 的完成任务，运行 `pnpm format && pnpm full-check`，提交本阶段文件
 
 ---
 

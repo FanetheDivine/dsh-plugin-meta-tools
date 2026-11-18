@@ -25,3 +25,6 @@
 - `pnpm build` 在生成产物与类型声明后运行 `test:dist`
 - 产物缺失或过期时产物测试失败，提示运行 `pnpm build`
 - CI 的发布任务恢复 tag 触发，版本改为 0.1.0
+- 宪章升级到 2.0.0，只保留宿主依赖版本、测试同步、文档结构、质量门禁、公开引用五条原则
+- 宿主契约、依赖归属、严格配置与工具契约归入 `docs/how-it-works.md`，国际化约束归入 `docs/i18n.md`
+- `AGENTS.md` 新增主工作区约束：主工作区位于 `main` 且干净，只运行 `git fetch` 与 `git pull`，任何变更在 worktree 中进行
