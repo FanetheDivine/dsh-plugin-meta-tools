@@ -137,7 +137,7 @@
 
 - **FR-011**: `session_get` MUST 把主会话与全部后代 subagent 的日志写入系统临时目录，不写入工作区目录。
 - **FR-012**: 每个会话 MUST 写成一个 JSONL 文件：首行是会话头，其后每行一个事件，与 DSH `/export` 的日志内容一致。
-- **FR-013**: 文件名 MUST 使用当前格式版本的规范名（`session.jsonl` 或 `session.vN.jsonl`）；subagent 文件 MUST 位于 `subagents/<id>/` 下。
+- **FR-013**: 文件名 MUST 使用会话头记录的格式版本（`session.jsonl` 或 `session.vN.jsonl`）；subagent 文件 MUST 位于 `subagents/<id>/` 下。
 - **FR-014**: 每次调用 MUST 使用独立目录，避免覆盖上一次导出；返回 MUST 含目录与每个文件的绝对路径、会话 id 与主/从角色。
 - **FR-015**: 导出前 MUST 对活动会话执行落盘屏障；会话不存在或写入失败时 MUST 报错。
 - **FR-016**: 导出 MUST NOT 包含附件与媒体文件；日志中引用的附件保持原样。
