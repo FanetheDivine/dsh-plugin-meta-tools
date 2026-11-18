@@ -1,6 +1,6 @@
 # 项目说明
 
-DSH 插件 `dsh-plugin-meta-tools`，为模型提供本 profile 的工作区与会话工具。用 TypeScript 开发，用 tsdown 构建，用 biome 检查代码质量，用 vitest 运行测试。
+DSH 插件 `dsh-plugin-meta-tools`，为模型提供工作区与会话工具。用 TypeScript 开发，用 tsdown 构建，用 biome 检查代码质量，用 vitest 运行测试。
 
 - 常用 pnpm 脚本：`dev`、`build`、`check`、`full-check`、`release`、`test:code`、`test:dist`、`lint`、`lint:fix`、`format`。
 - 命令说明见 [development.md](./docs/development.md#命令)。
