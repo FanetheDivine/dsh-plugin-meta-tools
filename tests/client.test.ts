@@ -118,6 +118,23 @@ describe('字典', () => {
       expect((en as Record<string, string>)[`config.${tool}.label`]).toBeTruthy();
     }
   });
+
+  it('十一段标签按用户清单排列', () => {
+    const labels = TOOL_NAMES.map((tool) => (zh as Record<string, string>)[`config.${tool}.label`]);
+    expect(labels).toEqual([
+      '获取工作区信息',
+      '注册工作区',
+      '删除工作区',
+      '重命名工作区',
+      '获取会话信息',
+      '获取会话日志',
+      '新建会话',
+      '停止会话',
+      '发送消息',
+      '置顶会话',
+      '归档会话',
+    ]);
+  });
 });
 
 describe('配置页', () => {

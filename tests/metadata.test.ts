@@ -54,6 +54,13 @@ describe('插件元数据资源', () => {
     expect(String(meta.title)).not.toMatch(/[\r\n]/);
   });
 
+  it('标题与描述按用户文案', () => {
+    expect(metaOf('zh').title).toBe('为模型提供元工具');
+    expect(metaOf('zh').description).toBe('让Agent能够操作工作区和会话');
+    expect(metaOf('en').title).toBe('Meta tools for the model');
+    expect(metaOf('en').description).toBe('Lets the agent operate workspaces and sessions');
+  });
+
   it('各语言的 meta 键集一致', () => {
     const keysOf = (id: string) => Object.keys(metaOf(id)).sort();
     const [first, ...rest] = BASELINE_LOCALES.map(keysOf);
