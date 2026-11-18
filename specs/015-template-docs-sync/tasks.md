@@ -77,8 +77,8 @@
 
 **Independent Test**: 命令与 skill 都在创建前调用同步脚本，失败时停止；脚本回归测试通过。
 
-- [ ] T018 [US4] 修改 `.specify/extensions/worktree/commands/speckit.worktree.create.md` 与 `.dsh/skills/speckit-worktree-create/SKILL.md`：创建前运行 `sync-main.sh --json`，退出 2 或 1 时停止并报告，复用 worktree 时也执行；Output 增加 `MAIN_COMMIT` 与 `UPDATED`；保持两份正文一致
-- [ ] T019 [US4] 运行 `pnpm vitest run tests/sync-main.test.ts` 与 `pnpm format && pnpm check`，提交开始流程文件
+- [X] T018 [US4] 修改 `.specify/extensions/worktree/commands/speckit.worktree.create.md` 与 `.dsh/skills/speckit-worktree-create/SKILL.md`：创建前运行 `sync-main.sh --json`，退出 2 或 1 时停止并报告，复用 worktree 时也执行；Output 增加 `MAIN_COMMIT` 与 `UPDATED`；保持两份正文一致
+- [X] T019 [US4] 运行 `pnpm vitest run tests/sync-main.test.ts` 与 `pnpm format && pnpm check`，提交开始流程文件
 
 ---
 
