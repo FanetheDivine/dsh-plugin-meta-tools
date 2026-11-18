@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### Fixed
+
+- 修复 `session_create` 首条消息与 `session_send` 的 queue/steer 投递，向宿主传递当前调用的取消信号
+
 ### Added
 
 - `/speckit-worktree-create` 创建 spec 时同步远程全部分支并推送占号分支，同号时按分支名自动改号

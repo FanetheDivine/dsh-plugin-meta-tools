@@ -69,10 +69,10 @@
 
 **Purpose**: 验证插件接线、文档、构建产物与真实宿主行为。
 
-- [ ] T007 [P] 在 `tests/plugin.test.ts` 使用 `tests/helpers.ts` 的 `makeCtx` 增加从插件注册到工具执行的投递回归，验证实际注册工具也传递执行信号
-- [ ] T008 [P] 更新 `docs/how-it-works.md` 的会话投递信号说明，并按分支交付规则更新 `CHANGELOG.md`
-- [ ] T009 运行 `pnpm format && pnpm check`，随后运行 `pnpm full-check`，确认 `tests/package-pack.test.ts` 与全部构建产物测试通过
-- [ ] T010 按 `specs/019-session-delivery/quickstart.md` 在真实 DSH 宿主验收空白创建、带 prompt 创建、queue、steer、运行中停止和停止后再次投递
+- [X] T007 [P] 在 `tests/plugin.test.ts` 使用 `tests/helpers.ts` 的 `makeCtx` 增加从插件注册到工具执行的投递回归，验证实际注册工具也传递执行信号
+- [X] T008 [P] 更新 `docs/how-it-works.md` 的会话投递信号说明，并按分支交付规则更新 `CHANGELOG.md`
+- [X] T009 运行 `pnpm format && pnpm check`，随后运行 `pnpm full-check`，确认 `tests/package-pack.test.ts` 与全部构建产物测试通过
+- [X] T010 按 `specs/019-session-delivery/quickstart.md` 在真实 DSH 宿主验收空白创建、带 prompt 创建、queue、steer、运行中停止和停止后再次投递
 
 ---
 

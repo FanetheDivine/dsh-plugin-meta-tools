@@ -79,6 +79,7 @@ DSH 插件是一个 npm 包。宿主按约定的入口加载宿主部分，按 `
 - `session_create` 调 `sessionController.create`；给出标题时再调 `rename`，给出首条消息时调 `prompt`。
 - `session_stop` 调 `sessionController.cancel`，只取消当前轮次。
 - `session_send` 把文本包进 `<system-reminder>` 帧，转义正文里的闭合标签，再调 `prompt` 投递。
+- 两条投递链路均把当前工具调用的 `AbortSignal` 作为 `prompt` 的第二参数，支持宿主入口检查与调用方取消。
 - `session_pin` 调 `pinSession` / `unpinSession`；`session_archive` 调 `archiveSession` / `unarchiveSession`。
 - 归档运行中的会话需要 `stopActivity: true`，否则注册表拒绝。
 
