@@ -33,7 +33,7 @@ function asRecord(value: unknown): Record<string, unknown> {
 
 /** 读取一份资源的 meta 对象。 */
 function metaOf(id: string): Record<string, unknown> {
-  return asRecord(asRecord(readLocale(id).data)['meta']);
+  return asRecord(asRecord(readLocale(id).data).meta);
 }
 
 describe('插件元数据资源', () => {
@@ -51,7 +51,7 @@ describe('插件元数据资源', () => {
       expect(String(value).trim()).not.toBe('');
     }
     // 标题单行，避免在插件行被截断
-    expect(String(meta['title'])).not.toMatch(/[\r\n]/);
+    expect(String(meta.title)).not.toMatch(/[\r\n]/);
   });
 
   it('各语言的 meta 键集一致', () => {
@@ -73,7 +73,7 @@ describe('插件元数据资源', () => {
 
   it('声明 meta.detail 时指向包内 Markdown 文件', () => {
     for (const id of BASELINE_LOCALES) {
-      const detail = metaOf(id)['detail'];
+      const detail = metaOf(id).detail;
       if (detail === undefined) continue;
       expect(typeof detail).toBe('string');
       expect(String(detail)).toMatch(/^docs\/.+\.md$/);
@@ -83,7 +83,7 @@ describe('插件元数据资源', () => {
 
   it('package.json 导出并打包全部元数据资源', () => {
     const manifest = asRecord(JSON.parse(readFileSync(path.join(ROOT, 'package.json'), 'utf8')));
-    expect(asRecord(manifest['exports'])['./locale/*.json']).toBe('./locale/*.json');
-    expect(manifest['files']).toContain('locale/*.json');
+    expect(asRecord(manifest.exports)['./locale/*.json']).toBe('./locale/*.json');
+    expect(manifest.files).toContain('locale/*.json');
   });
 });
