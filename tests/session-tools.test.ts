@@ -224,6 +224,26 @@ describe('session_list', () => {
     expect(value.note).toContain('scanned the newest 200 sessions');
   });
 
+  it('归档的主会话不因活动 subagent 而复活', async () => {
+    const ctx = makeCtx();
+    const { query } = makeQuery({
+      records: [makeRecord('s1', 2), makeRecord('s2', 1, { parentId: 's1' })],
+    });
+    ctx._setService('sessionQuery', query);
+    ctx._setService('workspaceRegistry', {
+      get: () => undefined,
+      archivedSessionIds: ['s1'],
+      pinnedSessionIds: [],
+    });
+    const tool = buildSessionTool('session_list', { ctx, sessionQuery: query });
+    const value = (await tool.execute({}, exec)) as {
+      total: number;
+      sessions: Array<{ id: string }>;
+    };
+    expect(value.total).toBe(0);
+    expect(value.sessions).toEqual([]);
+  });
+
   it('渲染数量、摘要与说明', async () => {
     const { build } = setup({
       records: [makeRecord('s1', 1, { cwd: 'D:\\a', live: true })],

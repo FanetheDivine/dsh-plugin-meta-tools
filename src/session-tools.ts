@@ -189,7 +189,8 @@ export function buildSessionTool(name: 'session_list', deps: SessionToolDeps): T
         callerRootId = rootOf(caller, byId).header.id;
       }
 
-      let records = all;
+      const roots = groupByRoot(all, byId);
+      let candidates = [...roots.values()].filter((root) => root.header.id !== callerRootId);
       if (args.workspace_id !== undefined) {
         if (registry === undefined) {
           throw new Error('Workspace listing is unavailable.');
@@ -201,20 +202,16 @@ export function buildSessionTool(name: 'session_list', deps: SessionToolDeps): T
           );
         }
         const accounted = new Set(workspace.sessionIds);
-        records = records.filter((record) => accounted.has(record.header.id));
+        candidates = candidates.filter((root) => accounted.has(root.header.id));
       }
       if (args.cwd !== undefined) {
         const cwd = args.cwd.trim();
-        records = records.filter((record) => record.header.cwd === cwd);
+        candidates = candidates.filter((root) => root.header.cwd === cwd);
       }
       if (args.include_archived !== true) {
-        records = records.filter((record) => !archived.has(record.header.id));
+        candidates = candidates.filter((root) => !archived.has(root.header.id));
       }
-
-      const roots = groupByRoot(records, byId);
-      const candidates = [...roots.values()]
-        .filter((root) => root.header.id !== callerRootId)
-        .sort((left, right) => right.header.createdAt - left.header.createdAt);
+      candidates.sort((left, right) => right.header.createdAt - left.header.createdAt);
 
       const query = typeof args.query === 'string' ? args.query.trim().toLowerCase() : '';
       const wantsTitles = args.titles !== false || query !== '';
