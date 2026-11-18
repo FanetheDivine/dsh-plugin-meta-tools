@@ -42,9 +42,9 @@ jobs:
           node-version: 24
           registry-url: https://registry.npmjs.org
           cache: pnpm
-      # trusted publishing（OIDC）要求 npm >= 11.5.1；node 24 自带的 npm 可能仍偏旧，显式升级到最新
+      # trusted publishing（OIDC）要求 npm >= 11.5.1；固定到 11，避免 npm 跨大版本改变发布行为
       - name: Update npm (>= 11.5.1 required for OIDC)
-        run: npm install -g npm@latest
+        run: npm install -g npm@11
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
       - name: Build
