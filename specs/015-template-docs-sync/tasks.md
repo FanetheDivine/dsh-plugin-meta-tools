@@ -46,8 +46,8 @@
 
 **Independent Test**: 按 [quickstart.md](./quickstart.md) 文档验证第 3 步核对四条规则，宪章仍为五条原则。
 
-- [ ] T010 [US3] 修改 `AGENTS.md`：在「文档索引」与「开发流程」之间新增「主工作区」，写明 `main` 分支、`git status --porcelain` 为空、只运行 `git fetch` 与 `git pull`、任何变更在 worktree 中进行
-- [ ] T011 [US3] 运行 `pnpm format && pnpm check`，提交 `AGENTS.md`
+- [X] T010 [US3] 修改 `AGENTS.md`：在「文档索引」与「开发流程」之间新增「主工作区」，写明 `main` 分支、`git status --porcelain` 为空、只运行 `git fetch` 与 `git pull`、任何变更在 worktree 中进行
+- [X] T011 [US3] 运行 `pnpm format && pnpm check`，提交 `AGENTS.md`
 
 ---
 
