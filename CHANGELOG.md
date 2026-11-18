@@ -16,6 +16,7 @@
 
 ### Changed
 
+- `session_get` 改为返回临时目录与文件路径，移除 `messages` 参数与消息列表
 - 插件页标题、描述与开关标签按新能力改写，工具标题合并为单行标签
 - 工具说明与文档去掉 `profile`
 - 仓库转化为 `dsh-plugin-meta-tools`：移除模板示例与前端示例行
