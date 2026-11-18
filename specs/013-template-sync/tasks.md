@@ -33,15 +33,15 @@
 
 **Independent Test**: 删除 `dist/` 后 `pnpm test:dist` 失败并提示 `pnpm build`，`pnpm check` 通过；`pnpm build` 后 `pnpm test:dist` 通过。
 
-- [ ] T005 [P] [US3] 新增 `tests/support/dist-freshness.ts`：导出 `assertFreshDist(root?)`；`BUILD_INPUT_FILES` 为 `tsdown.config.ts`、`tsconfig.json`、`tsconfig.build.json`、`package.json`；`BUILD_INPUT_DIRS` 为 `src`；`BUILD_PRODUCTS` 为 `dist/client.js`、`dist/index.mjs`、`dist/index.d.ts`、`dist/client/index.d.ts`；缺失或输入晚于最旧产物时抛错，错误含缺失与过期文件清单及 `pnpm build`
-- [ ] T006 [US3] 新增 `tests/dist-freshness.test.ts`：在 `mkdtempSync` 临时目录构造输入与产物，覆盖新鲜、输入晚于产物、产物全缺、缺任一产物四种状态，`afterEach` 清理临时目录
-- [ ] T007 [US3] 修改 `tests/client-bundle.test.ts`：删除 `ensureBuild` 与 `spawnSync`、`existsSync` 导入，读取产物前调用 `assertFreshDist()`
-- [ ] T008 [US3] 修改 `tests/package-pack.test.ts`：删除条件构建分支与 `existsSync` 导入，`packedPaths()` 开头调用 `assertFreshDist()`，保留 `npm pack --dry-run --json` 缓存
-- [ ] T009 [US3] 修改 `vitest.config.ts`：在 `test` 下增加 `projects`，定义 `code`（`tests/**/*.test.ts`、`tests/**/*.test.mjs`，排除产物测试、`worktrees/**`、`node_modules/**`）与 `dist`（只含 `tests/client-bundle.test.ts`、`tests/package-pack.test.ts`），两者 `extends: true`
-- [ ] T010 [US3] 修改 `package.json` 的 `scripts`：`build` 追加 `pnpm run test:dist`；`check` 改用 `test:code`；新增 `test:code`、`test:dist`；移除 `test`
-- [ ] T011 [US3] 修改 `.github/workflows/ci.yml`：`check` job 的 `name` 改为 `Check (typecheck + lint + test:code + build + test:dist)`
-- [ ] T012 [US3] 运行 `pnpm build` 与 `pnpm check`，确认 `build` 末尾的 `test:dist` 通过、删除 `dist` 后 `check` 仍通过
-- [ ] T013 本阶段提交：`fix(013): 拆分源码测试与产物测试`
+- [X] T005 [P] [US3] 新增 `tests/support/dist-freshness.ts`：导出 `assertFreshDist(root?)`；`BUILD_INPUT_FILES` 为 `tsdown.config.ts`、`tsconfig.json`、`tsconfig.build.json`、`package.json`；`BUILD_INPUT_DIRS` 为 `src`；`BUILD_PRODUCTS` 为 `dist/client.js`、`dist/index.mjs`、`dist/index.d.ts`、`dist/client/index.d.ts`；缺失或输入晚于最旧产物时抛错，错误含缺失与过期文件清单及 `pnpm build`
+- [X] T006 [US3] 新增 `tests/dist-freshness.test.ts`：在 `mkdtempSync` 临时目录构造输入与产物，覆盖新鲜、输入晚于产物、产物全缺、缺任一产物四种状态，`afterEach` 清理临时目录
+- [X] T007 [US3] 修改 `tests/client-bundle.test.ts`：删除 `ensureBuild` 与 `spawnSync`、`existsSync` 导入，读取产物前调用 `assertFreshDist()`
+- [X] T008 [US3] 修改 `tests/package-pack.test.ts`：删除条件构建分支与 `existsSync` 导入，`packedPaths()` 开头调用 `assertFreshDist()`，保留 `npm pack --dry-run --json` 缓存
+- [X] T009 [US3] 修改 `vitest.config.ts`：在 `test` 下增加 `projects`，定义 `code`（`tests/**/*.test.ts`、`tests/**/*.test.mjs`，排除产物测试、`worktrees/**`、`node_modules/**`）与 `dist`（只含 `tests/client-bundle.test.ts`、`tests/package-pack.test.ts`），两者 `extends: true`
+- [X] T010 [US3] 修改 `package.json` 的 `scripts`：`build` 追加 `pnpm run test:dist`；`check` 改用 `test:code`；新增 `test:code`、`test:dist`；移除 `test`
+- [X] T011 [US3] 修改 `.github/workflows/ci.yml`：`check` job 的 `name` 改为 `Check (typecheck + lint + test:code + build + test:dist)`
+- [X] T012 [US3] 运行 `pnpm build` 与 `pnpm check`，确认 `build` 末尾的 `test:dist` 通过、删除 `dist` 后 `check` 仍通过
+- [X] T013 本阶段提交：`fix(013): 拆分源码测试与产物测试`
 
 ---
 
