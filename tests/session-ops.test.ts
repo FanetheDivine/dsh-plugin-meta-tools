@@ -119,6 +119,28 @@ describe('session_create', () => {
     });
   });
 
+  it('首条消息传递当前执行信号', async () => {
+    const { controller, prompt } = makeController();
+    prompt.mockImplementationOnce(acceptPromptWithHostSignal);
+    const signal = new AbortController().signal;
+    const execution = { signal } as never;
+    const tool = buildSessionCreateTool({ sessionController: controller });
+
+    await expect(tool.execute({ prompt: 'hello' }, execution)).resolves.toMatchObject({
+      sessionId: 'session-new',
+      prompted: true,
+    });
+    expect(prompt.mock.calls[0]?.[1]).toBe(signal);
+  });
+
+  it('不带首条消息时保持空白会话', async () => {
+    const { controller, prompt } = makeController();
+    const tool = buildSessionCreateTool({ sessionController: controller });
+
+    await expect(tool.execute({}, exec)).resolves.toMatchObject({ prompted: false });
+    expect(prompt).not.toHaveBeenCalled();
+  });
+
   it('未给位置时沿用调用方目录', async () => {
     const { controller, create } = makeController();
     const tool = buildSessionCreateTool({ sessionController: controller });

@@ -55,11 +55,11 @@
 
 ### Tests for User Story 2
 
-- [ ] T005 [US2] 在 `tests/session-ops.test.ts` 增加首条消息的严格信号回归与空白会话回归，先运行并确认首条消息用例失败
+- [X] T005 [US2] 在 `tests/session-ops.test.ts` 增加首条消息的严格信号回归与空白会话回归，先运行并确认首条消息用例失败
 
 ### Implementation for User Story 2
 
-- [ ] T006 [US2] 在 `src/session-ops.ts` 的 `buildSessionCreateTool` 中把 `exec.signal` 作为第二个参数传给 `sessionController.prompt`，并在 `src/types.ts` 把该参数改为必需，运行 session_create 用例并确认通过
+- [X] T006 [US2] 在 `src/session-ops.ts` 的 `buildSessionCreateTool` 中把 `exec.signal` 作为第二个参数传给 `sessionController.prompt`，并在 `src/types.ts` 把该参数改为必需，运行 session_create 用例并确认通过
 
 **Checkpoint**: 两条 P1 故事均通过独立测试，内部类型与宿主签名一致。
 

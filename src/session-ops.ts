@@ -169,12 +169,15 @@ export function buildSessionCreateTool(deps: SessionControlDeps): ToolDefinition
       const prompt = typeof args.prompt === 'string' ? args.prompt.trim() : '';
       if (prompt !== '') {
         try {
-          await sessionController.prompt({
-            requestId: randomUUID(),
-            sessionId: created.sessionId,
-            mode: 'queue',
-            content: [{ type: 'text', text: prompt }],
-          });
+          await sessionController.prompt(
+            {
+              requestId: randomUUID(),
+              sessionId: created.sessionId,
+              mode: 'queue',
+              content: [{ type: 'text', text: prompt }],
+            },
+            exec.signal,
+          );
           prompted = true;
         } catch (error) {
           throw new Error(

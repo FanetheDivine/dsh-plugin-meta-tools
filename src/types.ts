@@ -213,7 +213,7 @@ export interface SessionControllerLike {
   /** 投递一条消息，并接收调用方的取消信号。 */
   prompt(
     request: SessionPromptRequestLike,
-    signal?: AbortSignal,
+    signal: AbortSignal,
   ): Promise<{ readonly accepted: true }>;
   /** 取消当前轮次。 */
   cancel(request: { readonly sessionId: string }): { readonly accepted: true };
