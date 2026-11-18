@@ -277,12 +277,15 @@ export function buildSessionSendTool(deps: SessionControlDeps): ToolDefinition {
       const mode = args.mode === 'steer' ? 'steer' : 'queue';
       const content = [{ type: 'text' as const, text: systemReminder(text) }];
       try {
-        await sessionController.prompt({
-          requestId: randomUUID(),
-          sessionId: id,
-          mode,
-          content,
-        });
+        await sessionController.prompt(
+          {
+            requestId: randomUUID(),
+            sessionId: id,
+            mode,
+            content,
+          },
+          exec.signal,
+        );
       } catch (error) {
         const sender = exec.agent;
         const subagents = subagentsOf(sender);

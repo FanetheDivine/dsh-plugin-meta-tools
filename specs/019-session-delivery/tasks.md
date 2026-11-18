@@ -37,11 +37,11 @@
 
 ### Tests for User Story 1
 
-- [ ] T003 [US1] 在 `tests/session-ops.test.ts` 为 queue 与 steer 增加严格信号回归，替身拒绝对 `undefined` 调用 `throwIfAborted`，先运行并确认两条用例失败
+- [X] T003 [US1] 在 `tests/session-ops.test.ts` 为 queue 与 steer 增加严格信号回归，替身拒绝对 `undefined` 调用 `throwIfAborted`，先运行并确认两条用例失败
 
 ### Implementation for User Story 1
 
-- [ ] T004 [US1] 在 `src/session-ops.ts` 的 `buildSessionSendTool` 中把 `exec.signal` 作为第二个参数传给 `sessionController.prompt`，运行 `tests/session-ops.test.ts` 的 session_send 用例并确认通过
+- [X] T004 [US1] 在 `src/session-ops.ts` 的 `buildSessionSendTool` 中把 `exec.signal` 作为第二个参数传给 `sessionController.prompt`，运行 `tests/session-ops.test.ts` 的 session_send 用例并确认通过
 
 **Checkpoint**: queue 与 steer 可独立验收，system-reminder 包装与 subagent 路由保持不变。
 
