@@ -113,8 +113,9 @@ describe('前端产物（dist/client.js）', () => {
     if (exported === undefined) throw new Error('产物工厂没有返回导出对象');
     const ctx = makeClientCtx();
     (exported.apply as (target: unknown) => void)(ctx);
-    expect(ctx._slotInjections).toEqual(['conversation.composer.dock', 'plugins.row.config']);
-    expect(ctx._slotRegistrations[0]?.options.id).toBe('demo');
-    expect(ctx._slotRegistrations[1]?.options.key).toBe('dsh-plugin-template#dsh-plugin-template');
+    expect(ctx._slotInjections).toEqual(['plugins.row.config']);
+    expect(ctx._slotRegistrations[0]?.options.key).toBe(
+      'dsh-plugin-meta-tools#dsh-plugin-meta-tools',
+    );
   });
 });
