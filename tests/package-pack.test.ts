@@ -52,6 +52,16 @@ describe('npm 包内容（npm pack --dry-run）', () => {
     expect([...packed].some((p) => p.startsWith('scripts/'))).toBe(false);
   }, 30_000);
 
+  it('package.json 的 repository 指向本仓库，供 provenance 校验', () => {
+    const pkg = JSON.parse(readFileSync(path.join(ROOT, 'package.json'), 'utf8')) as {
+      repository?: { type?: string; url?: string };
+    };
+    expect(pkg.repository).toEqual({
+      type: 'git',
+      url: 'git+https://github.com/FanetheDivine/dsh-plugin-meta-tools.git',
+    });
+  });
+
   it('前端产物以包名注册闭包工厂', () => {
     // 读取的产物与包内容一致
     packedPaths();
