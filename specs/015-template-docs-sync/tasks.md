@@ -88,8 +88,8 @@
 
 **Independent Test**: 命令与 skill 都在清理后调用同步脚本，失败时报告并保留主工作区现状；脚本回归测试通过。
 
-- [ ] T020 [US5] 修改 `.specify/extensions/worktree/commands/speckit.worktree.finish.md` 与 `.dsh/skills/speckit-worktree-finish/SKILL.md`：`finish-worktree.sh` 成功后运行 `sync-main.sh --json`，退出 2 或 1 时报告原因；Output 增加同步结果；保持两份正文一致
-- [ ] T021 [US5] 运行 `pnpm vitest run tests/sync-main.test.ts` 与 `pnpm format && pnpm check`，提交结束流程文件
+- [X] T020 [US5] 修改 `.specify/extensions/worktree/commands/speckit.worktree.finish.md` 与 `.dsh/skills/speckit-worktree-finish/SKILL.md`：`finish-worktree.sh` 成功后运行 `sync-main.sh --json`，退出 2 或 1 时报告原因；Output 增加同步结果；保持两份正文一致
+- [X] T021 [US5] 运行 `pnpm vitest run tests/sync-main.test.ts` 与 `pnpm format && pnpm check`，提交结束流程文件
 
 ---
 
