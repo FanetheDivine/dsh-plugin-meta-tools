@@ -1,4 +1,4 @@
-# Feature Specification: 模板文档同步
+# Feature Specification: 模板流程同步
 
 **Feature Branch**: `docs/015-template-docs-sync`
 
@@ -6,7 +6,13 @@
 
 **Status**: Draft
 
-**Input**: User description: "查看模板项目最近两个提交，仿照其修订本项目 spec 与文档。参照提交为 `e417c35`（宪章精简）与 `fde16ee`（主工作区约束与 main 同步）。"
+**Input**: User description: "查看模板项目最近两个提交，仿照其修订本项目 spec 与文档。参照提交为 `e417c35`（宪章精简）与 `fde16ee`（主工作区约束与 main 同步）。PR 前确认补齐主工作区开始与结束同步流程。"
+
+## Clarifications
+
+### Session 2026-11-18
+
+- Q: 是否在同一个 PR 中包含主工作区自动同步？ → A: 是。补齐开始与结束同步流程、脚本、测试和文档后创建 PR。
 
 ## User Scenarios & Testing *(mandatory)*
 
@@ -59,12 +65,47 @@ Agent 在任何会话中收到变更要求时，从 `AGENTS.md` 得知主工作�
 4. **Given** `AGENTS.md`，**When** 查找变更位置，**Then** 看到任何变更 MUST 在 worktree 中进行，文档、配置、spec 与代码同样适用。
 5. **Given** 宪章，**When** 查找主工作区约束，**Then** 找不到相关条目，原则总数保持五条。
 
+### User Story 4 - 开始前主工作区 main 与 origin 一致 (Priority: P1)
+
+Agent 开始新需求时，流程先把主工作区的 `main` 同步到 `origin/main`，再创建 worktree。
+
+**Why this priority**: 本地 `main` 落后时，主工作区内的文件与 skill 是旧版本，Agent 会按过期流程执行。
+
+**Independent Test**: 让主工作区 `main` 落后 `origin/main` 若干提交，执行开始流程，结束后两者指向同一提交。
+
+**Acceptance Scenarios**:
+
+1. **Given** 主工作区 `main` 落后 `origin/main`，**When** 开始新需求，**Then** 创建 worktree 前主工作区 `main` 与 `origin/main` 指向同一提交。
+2. **Given** 主工作区位于其他分支，**When** 开始新需求，**Then** 流程停止并报告分支不符，不创建 worktree。
+3. **Given** 主工作区有未提交改动，**When** 开始新需求，**Then** 流程停止并列出改动，不创建 worktree。
+4. **Given** 主工作区 `main` 含有 `origin/main` 之外的本地提交，**When** 开始新需求，**Then** 流程停止并报告分叉，不改写本地提交。
+
+---
+
+### User Story 5 - 结束后主工作区 main 与 origin 一致 (Priority: P1)
+
+需求交付合并或放弃后，流程在清理 worktree 时把主工作区的 `main` 同步到 `origin/main`。
+
+**Why this priority**: 交付合并后 `origin/main` 已前进，主工作区同步后，下一次会话才能读取当前文件。
+
+**Independent Test**: 完成一次交付或放弃，清理结束后主工作区 `main` 与 `origin/main` 指向同一提交，且主工作区干净。
+
+**Acceptance Scenarios**:
+
+1. **Given** PR 已合并，**When** 结束流程完成清理，**Then** 主工作区 `main` 与 `origin/main` 指向同一提交，且包含刚合并的提交。
+2. **Given** 用户放弃需求，**When** 结束流程完成清理，**Then** 主工作区 `main` 与 `origin/main` 指向同一提交。
+3. **Given** 结束时主工作区不在 `main` 或不干净，**When** 执行同步，**Then** 流程报告原因并保留主工作区现状。
+
+---
+
 ### Edge Cases
 
 - 历史 `specs/` 与已有 CHANGELOG 条目中的旧原则编号保持原样。
 - 本仓库是实际插件，工具契约规则迁入 `docs/how-it-works.md`，无需新增模板转化文档。
 - 被 `.gitignore` 忽略的文件不计入主工作区未提交改动。
-- 本次只修订文档与流程说明，不声明 worktree 扩展已经自动同步 `main`。
+- 主工作区 `main` 已与 `origin/main` 一致时，同步不产生提交，流程继续。
+- 无法连接 `origin` 时，开始流程停止并报告网络错误，不创建 worktree。
+- 会话已在 feature worktree 内时，开始流程复用该 worktree，仍检查并同步主工作区。
 
 ## Requirements *(mandatory)*
 
@@ -99,6 +140,16 @@ Agent 在任何会话中收到变更要求时，从 `AGENTS.md` 得知主工作�
 - **FR-016**: `docs/development.md` 的测试要求 MUST 引用原则 II，Spec Kit 流程说明 MUST 与当前扩展行为一致。
 - **FR-017**: 变更 MUST 通过 `pnpm format && pnpm check`。
 
+**主工作区同步**
+
+- **FR-018**: 开始流程 MUST 在创建 worktree 前检查主工作区满足 FR-011 与 FR-012，不满足时停止并报告。
+- **FR-019**: 开始流程 MUST 以 fast-forward 方式把主工作区 `main` 同步到 `origin/main`，无法 fast-forward 时停止并报告。
+- **FR-020**: 结束流程 MUST 在交付与放弃两种模式的清理阶段，以 fast-forward 方式把主工作区 `main` 同步到 `origin/main`。
+- **FR-021**: 结束流程在主工作区不满足 FR-011 或 FR-012 时 MUST 报告原因并跳过同步，保留主工作区现状。
+- **FR-022**: 同步结果 MUST 出现在流程输出中，包括是否更新与同步后的提交。
+- **FR-023**: 开始与结束流程的检查与同步行为 MUST 由测试覆盖。
+- **FR-024**: `docs/development.md` 中的流程说明 MUST 包含开始前与清理后的主工作区同步。
+
 ### Key Entities
 
 - **宪章原则**：Constitution Check 与 analyze 逐条核对的硬约束。
@@ -114,11 +165,15 @@ Agent 在任何会话中收到变更要求时，从 `AGENTS.md` 得知主工作�
 - **SC-003**: 现行文档、skill 与扩展命令中指向错误或已删除原则编号的引用数为 0。
 - **SC-004**: Agent 只读 `AGENTS.md`，能在 1 分钟内回答主工作区分支、清洁状态、允许操作与变更位置。
 - **SC-005**: `pnpm check` 全部通过。
+- **SC-006**: 执行开始流程后，主工作区 `main` 与 `origin/main` 的提交一致率为 100%。
+- **SC-007**: 执行结束流程后，主工作区 `main` 与 `origin/main` 的提交一致率为 100%，且主工作区干净。
+- **SC-008**: 主工作区不在 `main`、不干净或已分叉的 3 种情形，开始流程全部停止且不创建 worktree。
 
 ## Assumptions
 
-- 本次范围是 spec、项目文档、扩展命令与对应 skill 的文档内容。
-- 自动同步主工作区 `main` 的脚本、命令步骤与测试不在本次范围，`docs/development.md` 不声明该自动化已经存在。
-- 依赖版本本身不升级，也不新增依赖回归测试。
+- 本次范围包括 spec、项目文档、worktree 扩展命令、对应 skill、同步脚本与回归测试。
+- 「开始前」对应 `/speckit-worktree-create`，「结束后」对应 `/speckit-worktree-finish` 的清理阶段。
+- 同步只做 fast-forward，不 rebase、不重置本地提交。
+- 依赖版本本身不升级。
 - 历史 `specs/` 与已有 CHANGELOG 条目不修改。
 - 工具契约迁移时把过时的「六个工具」改为当前「十一个工具」，不改变任何工具行为。

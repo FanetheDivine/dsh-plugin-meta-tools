@@ -1,8 +1,8 @@
-# Tasks: 模板文档同步
+# Tasks: 模板流程同步
 
 **Input**: `specs/015-template-docs-sync/` 下的 [plan.md](./plan.md)、[spec.md](./spec.md)、[research.md](./research.md)、[data-model.md](./data-model.md)、[quickstart.md](./quickstart.md)
 
-**Tests**: 无代码变更；每个实施阶段运行 `pnpm format && pnpm check`，最终执行 quickstart 验证。
+**Tests**: 每个实施阶段运行 `pnpm format && pnpm check`；`tests/sync-main.test.ts` 覆盖同步脚本真实行为；最终执行 `pnpm full-check` 与 quickstart 验证。
 
 **Organization**: 按用户故事分组；每个阶段对应一个 commit。
 
@@ -59,12 +59,57 @@
 
 ---
 
+## Phase 6: Foundational - 主工作区同步脚本
+
+**Goal**: `sync-main.sh` 按 [contracts/sync-main.md](./contracts/sync-main.md) 工作，供 US4 与 US5 调用。
+
+**Independent Test**: `pnpm vitest run tests/sync-main.test.ts` 通过 9 个同步与拒绝场景。
+
+- [X] T015 新增 `tests/sync-main.test.ts`，在临时仓库与 bare origin 中覆盖 quickstart 自动验证表的 9 个场景；先运行并确认脚本缺失时失败
+- [X] T016 新增 `.specify/extensions/worktree/scripts/bash/sync-main.sh`：定位首个 worktree，检查 `main` 与清洁状态，fetch 后检查祖先关系，以 `git pull --ff-only` 同步；按契约输出字段与退出码；逻辑包在函数中，最后一行为 `main "$@"; exit $?`
+- [X] T017 运行 `pnpm vitest run tests/sync-main.test.ts` 与 `pnpm format && pnpm check`，提交本阶段脚本、测试与 Spec Kit 产物
+
+---
+
+## Phase 7: User Story 4 - 开始前主工作区 main 与 origin 一致 (Priority: P1)
+
+**Goal**: `/speckit-worktree-create` 在创建 worktree 前同步主工作区。
+
+**Independent Test**: 命令与 skill 都在创建前调用同步脚本，失败时停止；脚本回归测试通过。
+
+- [ ] T018 [US4] 修改 `.specify/extensions/worktree/commands/speckit.worktree.create.md` 与 `.dsh/skills/speckit-worktree-create/SKILL.md`：创建前运行 `sync-main.sh --json`，退出 2 或 1 时停止并报告，复用 worktree 时也执行；Output 增加 `MAIN_COMMIT` 与 `UPDATED`；保持两份正文一致
+- [ ] T019 [US4] 运行 `pnpm vitest run tests/sync-main.test.ts` 与 `pnpm format && pnpm check`，提交开始流程文件
+
+---
+
+## Phase 8: User Story 5 - 结束后主工作区 main 与 origin 一致 (Priority: P1)
+
+**Goal**: `/speckit-worktree-finish` 在交付与放弃两种模式的清理后同步主工作区。
+
+**Independent Test**: 命令与 skill 都在清理后调用同步脚本，失败时报告并保留主工作区现状；脚本回归测试通过。
+
+- [ ] T020 [US5] 修改 `.specify/extensions/worktree/commands/speckit.worktree.finish.md` 与 `.dsh/skills/speckit-worktree-finish/SKILL.md`：`finish-worktree.sh` 成功后运行 `sync-main.sh --json`，退出 2 或 1 时报告原因；Output 增加同步结果；保持两份正文一致
+- [ ] T021 [US5] 运行 `pnpm vitest run tests/sync-main.test.ts` 与 `pnpm format && pnpm check`，提交结束流程文件
+
+---
+
+## Phase 9: Polish
+
+- [ ] T022 修改 `docs/development.md`：测试表加入 `tests/sync-main.test.ts`，流程表第 1、7 步加入主工作区同步，维护 worktree 扩展节加入新测试
+- [ ] T023 修改 `CHANGELOG.md`，记录开始与结束流程的主工作区同步及回归测试
+- [ ] T024 按 `specs/015-template-docs-sync/quickstart.md` 完成验证，勾选 `specs/015-template-docs-sync/tasks.md`，运行 `git diff --check` 与 `pnpm format && pnpm full-check`，提交本阶段文件
+
+---
+
 ## Dependencies
 
 - Phase 1 → Phase 2 → Phase 3。
 - Phase 4 只依赖 Phase 1，可与 Phase 2、3 并行；本次按阶段顺序执行。
 - Phase 3 的 T004–T008 修改不同文件，可并行。
-- Phase 5 依赖全部用户故事完成。
+- Phase 5 依赖 Phase 1–4，记录文档阶段核对结果。
+- Phase 6 依赖 Phase 5，提供 US4 与 US5 共用的同步脚本。
+- Phase 7 与 Phase 8 都依赖 Phase 6，两者修改不同文件，可并行；本次顺序执行。
+- Phase 9 依赖全部用户故事完成。
 
 ## Parallel Example: User Story 2
 
@@ -79,5 +124,6 @@ T008: worktree finish 命令与 skill
 ## Implementation Strategy
 
 - MVP：Phase 1 + Phase 2，宪章 `2.0.0` 生效。
-- 按 Phase 3 → Phase 4 → Phase 5 递增交付，每个阶段一个 commit。
-- 总任务 14 项：US1 2 项、US2 6 项、US3 2 项、Setup 1 项、Polish 3 项。
+- 文档阶段按 Phase 3 → Phase 4 → Phase 5 交付。
+- 同步阶段按 Phase 6 → Phase 7 → Phase 8 → Phase 9 交付，每个阶段一个 commit。
+- 总任务 24 项：US1 2 项、US2 6 项、US3 2 项、US4 2 项、US5 2 项、Setup 1 项、Foundational 3 项、Polish 6 项。

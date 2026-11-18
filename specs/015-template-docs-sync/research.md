@@ -1,4 +1,4 @@
-# Research: 模板文档同步
+# Research: 模板流程同步
 
 ## R1 宪章原则
 
@@ -16,13 +16,21 @@
 
 **Alternatives considered**: 新增工具契约文档会增加归属层级；新增模板转化文档不适用于实际插件。
 
-## R3 主工作区同步范围
+## R3 主工作区同步
 
-**Decision**: `AGENTS.md` 写明主工作区位于 `main`、保持干净、只运行 `git fetch` 与 `git pull`，所有变更在 worktree 中进行。`docs/development.md` 保持当前扩展行为。
+**Decision**: 新增独立脚本 `sync-main.sh`，由扩展命令在创建前与清理后各调用一次。
 
-**Rationale**: 用户要求修订 spec 与文档。当前扩展没有自动同步脚本，文档不声明该能力已经存在。
+- 主工作区取 `git worktree list --porcelain` 的第一项。
+- 先检查主工作区位于 `main` 且 `git status --porcelain` 为空。
+- 运行 `git fetch origin main`，确认本地 `main` 是 `origin/main` 的祖先。
+- 本地落后时运行 `git pull --ff-only origin main`。
+- 退出码 0 表示已同步，2 表示主工作区不满足约束，1 表示其他错误。
+- 脚本逻辑包在函数中，`main "$@"; exit $?` 写在同一行。
+- 手工同步扩展命令正文与对应 skill，保留 skill front matter。
 
-**Alternatives considered**: 同步模板中的自动同步脚本与测试超出本次文档范围；只复制流程表会错误描述当前行为。
+**Rationale**: `--ff-only` 不产生合并提交，不改写本地提交。独立脚本先运行完毕，`create-worktree.sh` 再以更新后的版本启动；`finish-worktree.sh` 在同步前已经结束。函数与单行调用让 bash 在执行前完整解析脚本，避免 `git pull` 改写脚本后读到错位内容。
+
+**Alternatives considered**: `git merge --ff-only` 违反主工作区只允许 fetch 与 pull 的约束；`git reset --hard` 会丢弃本地提交；在创建或清理脚本内部同步会在 pull 后继续读取被改写的脚本。
 
 ## R4 编号引用
 

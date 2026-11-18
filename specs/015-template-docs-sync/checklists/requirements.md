@@ -1,4 +1,4 @@
-# Specification Quality Checklist: 模板文档同步
+# Specification Quality Checklist: 模板流程同步
 
 **Purpose**: Validate specification completeness and quality before proceeding to planning
 **Created**: 2026-11-18
