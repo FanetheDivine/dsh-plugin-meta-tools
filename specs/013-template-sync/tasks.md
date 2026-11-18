@@ -51,16 +51,16 @@
 
 **Independent Test**: 从 `AGENTS.md` 索引进入 `docs/i18n.md` 能列出新增语言要改的全部文件；`docs/development.md` 命令表含 `test:code` 与 `test:dist`。
 
-- [ ] T014 [P] [US4] 新增 `docs/i18n.md`：元数据资源位置与字段、宿主读取与回退、包清单声明、前端字典、语言选择、新增语言步骤与校验命令；按本插件改写文件名与命名空间
-- [ ] T015 [US4] 修订 `.specify/memory/constitution.md`：原则 IV 进包清单补 `locale/*.json` 与 `icon.svg`；原则 VI 合并门禁改为 `pnpm full-check`；原则 IX 增加元数据资源、键集一致、清单声明、禁用字符与规范归属条款；版本 1.10.0 → 1.11.0，更新 Sync Impact Report 与 `Last Amended`
-- [ ] T016 [P] [US4] 修订 `AGENTS.md`：新增项目说明小节（技术栈与常用脚本，含 `test:code`、`test:dist`）；文档索引增加 `README.md` 与 `docs/i18n.md`；写作规范移到末尾
-- [ ] T017 [P] [US4] 修订 `README.md`：功能列表增加「插件页标题与描述随宿主语言切换，中英文各一份」
-- [ ] T018 [US4] 修订 `docs/development.md`：命令表更新 `build`、`check` 并增加 `test:code`、`test:dist`；新增 CI 小节说明 `full-check` 与产物测试时机；测试文件表增加 `tests/metadata.test.ts`、`tests/dist-freshness.test.ts`，标注两份产物测试；补 vitest 双 project 说明与 `docs/i18n.md` 链接；文件地图补 `locale/` 与 `tests/support/`
-- [ ] T019 [P] [US4] 修订 `docs/how-it-works.md`：字典小节增加 `docs/i18n.md` 链接；打包与发布小节补 `locale/*.json` 与元数据读取
-- [ ] T020 [P] [US4] 修订 `docs/known-risks.md`：新增国际化小节，写明注册时捕获的文案、回退顺序与元数据缺失的回落
-- [ ] T021 [US4] 修订 `CHANGELOG.md`：Unreleased 记录元数据测试与文档、测试脚本拆分、产物过期提示、宪章修订
-- [ ] T022 [US4] 运行 `pnpm format && pnpm check`，确认类型、lint 与源码测试通过
-- [ ] T023 本阶段提交：`docs(013): 记录国际化规范与测试命令`
+- [X] T014 [P] [US4] 新增 `docs/i18n.md`：元数据资源位置与字段、宿主读取与回退、包清单声明、前端字典、语言选择、新增语言步骤与校验命令；按本插件改写文件名与命名空间
+- [X] T015 [US4] 修订 `.specify/memory/constitution.md`：原则 IV 进包清单补 `locale/*.json` 与 `icon.svg`；原则 VI 合并门禁改为 `pnpm full-check`；原则 IX 增加元数据资源、键集一致、清单声明、禁用字符与规范归属条款；版本 1.10.0 → 1.11.0，更新 Sync Impact Report 与 `Last Amended`
+- [X] T016 [P] [US4] 修订 `AGENTS.md`：新增项目说明小节（技术栈与常用脚本，含 `test:code`、`test:dist`）；文档索引增加 `README.md` 与 `docs/i18n.md`；写作规范移到末尾
+- [X] T017 [P] [US4] 修订 `README.md`：功能列表增加「插件页标题与描述随宿主语言切换，中英文各一份」
+- [X] T018 [US4] 修订 `docs/development.md`：命令表更新 `build`、`check` 并增加 `test:code`、`test:dist`；新增 CI 小节说明 `full-check` 与产物测试时机；测试文件表增加 `tests/metadata.test.ts`、`tests/dist-freshness.test.ts`，标注两份产物测试；补 vitest 双 project 说明与 `docs/i18n.md` 链接；文件地图补 `locale/` 与 `tests/support/`
+- [X] T019 [P] [US4] 修订 `docs/how-it-works.md`：字典小节增加 `docs/i18n.md` 链接；打包与发布小节补 `locale/*.json` 与元数据读取
+- [X] T020 [P] [US4] 修订 `docs/known-risks.md`：新增国际化小节，写明注册时捕获的文案、回退顺序与元数据缺失的回落
+- [X] T021 [US4] 修订 `CHANGELOG.md`：Unreleased 记录元数据测试与文档、测试脚本拆分、产物过期提示、宪章修订
+- [X] T022 [US4] 运行 `pnpm format && pnpm check`，确认类型、lint 与源码测试通过
+- [X] T023 本阶段提交：`docs(013): 记录国际化规范与测试命令`
 
 ---
 
