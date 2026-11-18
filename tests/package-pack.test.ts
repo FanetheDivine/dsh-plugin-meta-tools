@@ -14,6 +14,17 @@ const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 /** 打包结果的缓存：同一进程内只执行一次 npm pack。 */
 let cachedPaths: Set<string> | undefined;
 
+/** npm pack --json 的包报告：npm 11 返回数组，npm 12 返回以包名为键的对象。 */
+type PackReport =
+  | Array<{ files?: Array<{ path: string }> }>
+  | Record<string, { files?: Array<{ path: string }> }>;
+
+/** 把两种 npm pack --json 结构归一为 tarball 文件路径集合。 */
+function collectPackedPaths(report: PackReport): Set<string> {
+  const packages = Array.isArray(report) ? report : Object.values(report);
+  return new Set(packages.flatMap((p) => p.files ?? []).map((f) => f.path));
+}
+
 /** 执行 npm pack --dry-run --json，返回 tarball 内文件路径集合。 */
 function packedPaths(): Set<string> {
   if (cachedPaths !== undefined) return cachedPaths;
@@ -28,11 +39,8 @@ function packedPaths(): Set<string> {
   if (res.status !== 0) {
     throw new Error(`npm pack --dry-run 失败：${String(res.stderr ?? res.stdout ?? '未知错误')}`);
   }
-  // npm pack --json 输出数组（单个包 = 单元素数组），取所有包的文件列表
-  const report = JSON.parse(String(res.stdout ?? '[]')) as Array<{
-    files?: Array<{ path: string }>;
-  }>;
-  cachedPaths = new Set(report.flatMap((p) => p.files ?? []).map((f) => f.path));
+  // npm pack --json 输出包报告，取所有包的文件列表
+  cachedPaths = collectPackedPaths(JSON.parse(String(res.stdout ?? '[]')) as PackReport);
   return cachedPaths;
 }
 
@@ -60,6 +68,14 @@ describe('npm 包内容（npm pack --dry-run）', () => {
       type: 'git',
       url: 'git+https://github.com/FanetheDivine/dsh-plugin-meta-tools.git',
     });
+  });
+
+  it('兼容 npm 11 数组与 npm 12 对象两种 pack 报告', () => {
+    const files = [{ path: 'dist/index.mjs' }];
+    expect(collectPackedPaths([{ files }])).toEqual(new Set(['dist/index.mjs']));
+    expect(collectPackedPaths({ 'dsh-plugin-meta-tools': { files } })).toEqual(
+      new Set(['dist/index.mjs']),
+    );
   });
 
   it('前端产物以包名注册闭包工厂', () => {
