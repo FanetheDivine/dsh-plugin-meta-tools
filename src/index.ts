@@ -3,8 +3,15 @@
  * apply 读取配置、按可用服务建立工具组，并在配置热重载时重建注册。
  */
 import { type PluginConfig, readConfig } from './config.ts';
-import { PLUGIN_LABEL, type ToolName, TOOL_NAMES, WORKSPACE_TOOL_NAMES } from './constants.ts';
-import type { Context, WorkspaceRegistryLike } from './types.ts';
+import {
+  PLUGIN_LABEL,
+  SESSION_TOOL_NAMES,
+  type ToolName,
+  TOOL_NAMES,
+  WORKSPACE_TOOL_NAMES,
+} from './constants.ts';
+import { buildSessionTool } from './session-tools.ts';
+import type { Context, SessionQueryLike, WorkspaceRegistryLike } from './types.ts';
 import { buildWorkspaceTool } from './workspace-tools.ts';
 
 export { Config } from './config.ts';
@@ -55,6 +62,30 @@ export function apply(ctx: Context, config?: unknown): void {
         if (index >= 0) groups.splice(index, 1);
       },
       'dsh-plugin-meta-tools: workspace tools',
+    );
+  });
+
+  ctx.inject(['sessionQuery'], (scoped) => {
+    const sessionQuery = scoped.get('sessionQuery') as SessionQueryLike | undefined;
+    if (sessionQuery === undefined) return;
+    const disposers: Array<() => void> = [];
+    /** 释放旧注册并按当前开关注册会话工具。 */
+    const sync = (): void => {
+      for (const dispose of disposers.splice(0)) dispose();
+      for (const tool of SESSION_TOOL_NAMES) {
+        if (!current[tool]) continue;
+        disposers.push(scoped.tools.register(buildSessionTool(tool, { ctx: scoped, sessionQuery })));
+      }
+    };
+    groups.push(sync);
+    sync();
+    scoped.effect(
+      () => () => {
+        for (const dispose of disposers.splice(0)) dispose();
+        const index = groups.indexOf(sync);
+        if (index >= 0) groups.splice(index, 1);
+      },
+      'dsh-plugin-meta-tools: session tools',
     );
   });
 

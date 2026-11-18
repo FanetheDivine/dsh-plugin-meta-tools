@@ -53,6 +53,42 @@ describe('apply 接线', () => {
     expect(ctx._activeToolNames()).toHaveLength(4);
   });
 
+  it('两个服务齐备时注册全部六个工具', () => {
+    const ctx = makeCtx();
+    ctx._setService('workspaceRegistry', {});
+    ctx._setService('sessionQuery', {});
+    apply(ctx, {});
+    expect(ctx._activeToolNames()).toEqual([
+      'workspace_list',
+      'workspace_create',
+      'workspace_remove',
+      'workspace_rename',
+      'session_list',
+      'session_get',
+    ]);
+  });
+
+  it('缺少会话服务时只注册工作区工具', () => {
+    const ctx = makeCtx();
+    ctx._setService('workspaceRegistry', {});
+    apply(ctx, {});
+    expect(ctx._activeToolNames()).not.toContain('session_list');
+  });
+
+  it('开关关闭的会话工具不注册，重新开启后恢复', () => {
+    const ctx = makeCtx();
+    const config = { session_get: volatile(true) };
+    ctx._setService('sessionQuery', {});
+    apply(ctx, config);
+    expect(ctx._activeToolNames()).toEqual(['session_list', 'session_get']);
+    config.session_get.set(false);
+    ctx._emit('loader/volatile-update');
+    expect(ctx._activeToolNames()).toEqual(['session_list']);
+    config.session_get.set(true);
+    ctx._emit('loader/volatile-update');
+    expect(ctx._activeToolNames()).toEqual(['session_list', 'session_get']);
+  });
+
   it('热重载事件读取新配置并更新日志', () => {
     const ctx = makeCtx();
     const config = { session_get: volatile(true), workspace_list: volatile(true) };
