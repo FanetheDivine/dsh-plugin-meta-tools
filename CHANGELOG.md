@@ -13,6 +13,8 @@
 - `tests/metadata.test.ts`：元数据结构、键集、禁用字符与清单声明
 - `docs/i18n.md`：元数据资源与前端字典的国际化规范
 - `tests/support/dist-freshness.ts` 与 `tests/dist-freshness.test.ts`：产物新鲜度判定
+- `.specify/extensions/worktree/scripts/bash/sync-main.sh`：检查主工作区并快进 `main` 到 `origin/main`
+- `tests/sync-main.test.ts`：覆盖主工作区同步与拒绝场景
 
 ### Changed
 
@@ -28,3 +30,4 @@
 - 宪章升级到 2.0.0，只保留宿主依赖版本、测试同步、文档结构、质量门禁、公开引用五条原则
 - 宿主契约、依赖归属、严格配置与工具契约归入 `docs/how-it-works.md`，国际化约束归入 `docs/i18n.md`
 - `AGENTS.md` 新增主工作区约束：主工作区位于 `main` 且干净，只运行 `git fetch` 与 `git pull`，任何变更在 worktree 中进行
+- `/speckit-worktree-create` 在创建 worktree 前、`/speckit-worktree-finish` 在清理后，把主工作区 `main` 快进到 `origin/main`

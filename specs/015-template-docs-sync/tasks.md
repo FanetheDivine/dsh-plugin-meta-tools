@@ -95,9 +95,9 @@
 
 ## Phase 9: Polish
 
-- [ ] T022 修改 `docs/development.md`：测试表加入 `tests/sync-main.test.ts`，流程表第 1、7 步加入主工作区同步，维护 worktree 扩展节加入新测试
-- [ ] T023 修改 `CHANGELOG.md`，记录开始与结束流程的主工作区同步及回归测试
-- [ ] T024 按 `specs/015-template-docs-sync/quickstart.md` 完成验证，勾选 `specs/015-template-docs-sync/tasks.md`，运行 `git diff --check` 与 `pnpm format && pnpm full-check`，提交本阶段文件
+- [X] T022 修改 `docs/development.md`：测试表加入 `tests/sync-main.test.ts`，流程表第 1、7 步加入主工作区同步，维护 worktree 扩展节加入新测试
+- [X] T023 修改 `CHANGELOG.md`，记录开始与结束流程的主工作区同步及回归测试
+- [X] T024 按 `specs/015-template-docs-sync/quickstart.md` 完成验证，勾选 `specs/015-template-docs-sync/tasks.md`，运行 `git diff --check` 与 `pnpm format && pnpm full-check`，提交本阶段文件
 
 ---
 
