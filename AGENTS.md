@@ -13,6 +13,15 @@ DSH 插件 `dsh-plugin-meta-tools`，为模型提供工作区与会话工具。�
 - [development.md](./docs/development.md)：本地开发、命令、测试、Spec Kit 命令一览、worktree 扩展维护与文件地图。
 - [i18n.md](./docs/i18n.md)：插件元数据与前端字典的国际化规范。
 
+# 主工作区
+
+主工作区指仓库根目录的检出，即 `git worktree list` 的第一项。
+
+- 主工作区 MUST 位于 `main` 分支。
+- 主工作区 MUST 保持干净，`git status --porcelain` 输出为空。
+- 在主工作区只运行 `git fetch` 与 `git pull`。
+- 任何变更 MUST 在 worktree 中进行，文档、配置、spec 与代码同样适用。
+
 # 开发流程
 
 在用户给出需求、缺陷或其他变更要求时，**立刻**获取 skill `speckit-specify` 的内容，并按流程推进。
