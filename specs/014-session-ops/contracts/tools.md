@@ -159,10 +159,10 @@
 {
   "directory": "C:\\Users\\me\\AppData\\Local\\Temp\\dsh-plugin-meta-tools\\session-logs\\session-1-20261118T071500Z-ab12",
   "sessionId": "session-1",
-  "main": "…\\session.v2.jsonl",
+  "main": "…\\session.v4.jsonl",
   "files": [
-    { "path": "…\\session.v2.jsonl", "sessionId": "session-1", "role": "main" },
-    { "path": "…\\subagents\\session-2\\session.v2.jsonl", "sessionId": "session-2", "role": "subagent" }
+    { "path": "…\\session.v4.jsonl", "sessionId": "session-1", "role": "main" },
+    { "path": "…\\subagents\\session-2\\session.v4.jsonl", "sessionId": "session-2", "role": "subagent" }
   ],
   "subagentCount": 1
 }
