@@ -18,8 +18,8 @@
 
 **Independent Test**: 按 [quickstart.md](./quickstart.md) 文档验证第 1 步核对原则列表与版本。
 
-- [ ] T002 [US1] 经 `/speckit-constitution` 重写 `.specify/memory/constitution.md`：原则依次为 I 宿主依赖版本、II 测试同步（不可协商）、III 文档结构、IV 质量门禁、V 公开引用；原则 II–V 保留原原则 IV、V、VI、VIII 的条款；原则 I 写明同版本 `@deepseek-ai/dsh`、同一确切 `dsh-*` 版本与 `minimumReleaseAgeExclude`；Governance 保持现状；更新 Sync Impact Report、版本与日期
-- [ ] T003 [US1] 运行 `pnpm format && pnpm check`，提交 `.specify/memory/constitution.md`
+- [X] T002 [US1] 经 `/speckit-constitution` 重写 `.specify/memory/constitution.md`：原则依次为 I 宿主依赖版本、II 测试同步（不可协商）、III 文档结构、IV 质量门禁、V 公开引用；原则 II–V 保留原原则 IV、V、VI、VIII 的条款；原则 I 写明同版本 `@deepseek-ai/dsh`、同一确切 `dsh-*` 版本与 `minimumReleaseAgeExclude`；Governance 保持现状；更新 Sync Impact Report、版本与日期
+- [X] T003 [US1] 运行 `pnpm format && pnpm check`，提交 `.specify/memory/constitution.md`
 
 **Checkpoint**: 宪章 `2.0.0` 生效，其他文档的编号引用在 Phase 3 同步。
 
