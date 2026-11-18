@@ -343,8 +343,9 @@ export function buildSessionArchiveTool(deps: SessionNavigationDeps): ToolDefini
       } catch (error) {
         const detail = messageOf(error);
         const base = `Could not ${remove ? 'restore' : 'archive'} session '${id}': ${detail}`;
+        const lower = detail.toLowerCase();
         const hint =
-          !remove && detail.toLowerCase().includes('active')
+          !remove && (lower.includes('active') || lower.includes('running'))
             ? ' Stop the session first, or pass stop_activity: true.'
             : '';
         throw new Error(hint === '' ? base : `${base}${base.endsWith('.') ? '' : '.'}${hint}`);
