@@ -5,6 +5,12 @@
 - `@deepseek-ai/dsh-*` 处于 rc 阶段，接口可能在版本间变化。
 - 插件依赖的版本应与运行它的 DSH 版本一致；当前固定为 0.2.2-rc.3。
 - `sessionController`、`workspaceRegistry` 的归档与置顶接口按 0.2.2-rc.3 实现，升级宿主后需要重新运行 `pnpm check` 与实机验证。
+- `@deepseek-ai/dsh-*` 依赖未列入 `minimumReleaseAgeExclude` 时，`pnpm install` 失败。
+- 版本与列入规则见[宪章](../.specify/memory/constitution.md)原则 I。
+
+## 共享宿主实例
+
+宿主提供的依赖被打进 bundle 时会产生第二份实例，类型判断和服务注入随之失效。依赖归属与保持 external 的规则见 [how-it-works.md](./how-it-works.md#依赖复用)。
 
 ## 可选服务
 

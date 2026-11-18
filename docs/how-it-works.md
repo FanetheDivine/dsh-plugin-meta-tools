@@ -20,15 +20,18 @@ DSH 插件是一个 npm 包。宿主按约定的入口加载宿主部分，按 `
 | 导出 | 含义 |
 | --- | --- |
 | `name` | 插件标识，与 `cordis.patch.yml` 的 id 一致 |
-| `inject` | 必需宿主服务，当前只有 `tools` |
+| `inject` | `apply` 直接使用的必需宿主服务，当前只有 `tools` |
 | `apply(ctx, config)` | 插件启用时调用 |
 | `Config` | 配置 schema，宿主据此校验配置并提供面板表单 |
 
-`workspaceRegistry`、`sessionQuery`、`sessionController`、`sessions` 是可选服务，经 `ctx.inject` 获取。缺少某个服务时，只跳过依赖它的工具，插件照常加载。
+- `src/index.ts` 只导出表中四个符号。
+- 需要热重载的 `Config` 字段用 `.volatile()` 标记。
+- 宿主类型经 `src/types.ts` 以 type-only 方式导入。
+- `workspaceRegistry`、`sessionQuery`、`sessionController`、`sessions` 是可选服务，经 `ctx.inject` 获取。缺少某个服务时，只跳过依赖它的工具，插件照常加载。
 
 ## 运行流程
 
-`apply` 依次完成四件事：
+`apply` 依次完成五件事：
 
 1. `readConfig` 读取配置的当前值。
 2. 为 `workspaceRegistry` 建立工具组：四个工作区工具、置顶与归档。
@@ -38,7 +41,11 @@ DSH 插件是一个 npm 包。宿主按约定的入口加载宿主部分，按 `
 
 ### 配置解析
 
-`readConfig` 先把 `.volatile()` 引用展开为普通值，再交给 `resolveConfig` 做严格校验：缺省或 `null` 取默认 `true`，未知键与非布尔值抛错，结果冻结。
+配置解析是 `apply` 的第一步。`readConfig` 先把 `.volatile()` 引用展开为普通值，再交给 `resolveConfig` 做严格校验：
+
+- 缺省或 `null` 的键使用默认值 `true`。
+- 未知键与非布尔值抛错，插件加载失败。
+- 解析结果冻结后返回。
 
 ### 工具组同步
 
@@ -75,6 +82,15 @@ DSH 插件是一个 npm 包。宿主按约定的入口加载宿主部分，按 `
 - `session_pin` 调 `pinSession` / `unpinSession`；`session_archive` 调 `archiveSession` / `unarchiveSession`。
 - 归档运行中的会话需要 `stopActivity: true`，否则注册表拒绝。
 
+## 工具契约
+
+- 十一个工具的名称、参数、说明、错误与返回 MUST 与 `tests/contract.test.ts` 保持一致。
+- 配置开关 MUST 与工具名一一对应；新增工具时 MUST 同时增加同名开关、文档与测试。
+- 修改工具契约 MUST 在 spec 中说明兼容性影响。
+- 移除或重命名工具 MUST 先获得用户确认。
+
+模型依赖固定的工具名与参数形成调用习惯，契约变化会影响既有会话与外部说明。
+
 ## 前端
 
 浏览器入口只注册插件面板的行配置页。
@@ -91,6 +107,17 @@ DSH 插件是一个 npm 包。宿主按约定的入口加载宿主部分，按 `
 - 表单由 `SettingsFormModel` 暂存十一个开关，`SettingsForm` 与 `Switch` 渲染，只在保存时写一次。
 - 每个开关只渲染一段标签，标签同时作为无障碍名称。
 - 控件使用 `--dsw-*` 主题令牌，随明暗主题与语言切换。
+
+## 依赖复用
+
+宿主提供 cordis、dsh-tools 与 schemastery 等实例，插件运行时使用宿主的同一份实例。依赖分为两类，新增依赖时在 plan 中声明归属：
+
+| 归属 | 放在 | 打包 |
+| --- | --- | --- |
+| 宿主提供 | `devDependencies` | 由 `tsdown.config.ts` 的 `neverBundle` 保持 external |
+| 插件自备 | `dependencies` | 列入 `tsdown.config.ts` 的 `alwaysBundle`，打进 `dist`，由 `tests/package-pack.test.ts` 回归发布内容 |
+
+宿主依赖的版本规则见[宪章](../.specify/memory/constitution.md)原则 I。
 
 ## 打包
 

@@ -31,12 +31,12 @@
 
 **Independent Test**: 按 [data-model.md](./data-model.md) 逐行核对，执行 [quickstart.md](./quickstart.md) 文档验证第 2、4、5 步。
 
-- [ ] T004 [P] [US2] 修改 `docs/how-it-works.md`：在「入口契约」补全四个导出、`.volatile()`、必需与可选服务、type-only 导入；在「配置解析」写明解析顺序、默认值、严格校验与冻结；新增「依赖复用」写明两类依赖与打包回归；新增「工具契约」写明当前十一个工具、`tests/contract.test.ts` 回归、同名开关、兼容性说明与用户确认
-- [ ] T005 [P] [US2] 修改 `docs/i18n.md`：新增「约束」节，写入原原则 IX 的全部规则，工具契约文案链接到 `docs/how-it-works.md#工具契约`，删除首行旧原则编号引用
-- [ ] T006 [P] [US2] 修改 `docs/development.md`：测试要求改引宪章原则 II，Spec Kit 流程说明保持当前扩展行为
-- [ ] T007 [P] [US2] 修改 `docs/known-risks.md`：宿主版本链接宪章原则 I，共享宿主实例风险链接 `docs/how-it-works.md#依赖复用`
-- [ ] T008 [P] [US2] 修改 `.specify/extensions/worktree/commands/speckit.worktree.finish.md` 与 `.dsh/skills/speckit-worktree-finish/SKILL.md`：CHANGELOG 规则改引原则 III，保持两份正文一致
-- [ ] T009 [US2] 运行 `pnpm format && pnpm check`，提交本阶段全部文档
+- [X] T004 [P] [US2] 修改 `docs/how-it-works.md`：在「入口契约」补全四个导出、`.volatile()`、必需与可选服务、type-only 导入；在「配置解析」写明解析顺序、默认值、严格校验与冻结；新增「依赖复用」写明两类依赖与打包回归；新增「工具契约」写明当前十一个工具、`tests/contract.test.ts` 回归、同名开关、兼容性说明与用户确认
+- [X] T005 [P] [US2] 修改 `docs/i18n.md`：新增「约束」节，写入原原则 IX 的全部规则，工具契约文案链接到 `docs/how-it-works.md#工具契约`，删除首行旧原则编号引用
+- [X] T006 [P] [US2] 修改 `docs/development.md`：测试要求改引宪章原则 II，Spec Kit 流程说明保持当前扩展行为
+- [X] T007 [P] [US2] 修改 `docs/known-risks.md`：宿主版本链接宪章原则 I，共享宿主实例风险链接 `docs/how-it-works.md#依赖复用`
+- [X] T008 [P] [US2] 修改 `.specify/extensions/worktree/commands/speckit.worktree.finish.md` 与 `.dsh/skills/speckit-worktree-finish/SKILL.md`：CHANGELOG 规则改引原则 III，保持两份正文一致
+- [X] T009 [US2] 运行 `pnpm format && pnpm check`，提交本阶段全部文档
 
 ---
 
