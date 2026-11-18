@@ -1,16 +1,19 @@
 {
-  "name": "dsh-plugin-template",
+  "name": "dsh-plugin-meta-tools",
   "version": "0.0.2",
   "type": "module",
   "main": "./dist/index.mjs",
   "module": "./dist/index.mjs",
   "types": "./dist/index.d.ts",
+  "description": "Model-facing tools for the workspaces and sessions of this DSH profile, with per-tool switches in the plugin panel.",
+  "icon": "./icon.svg",
   "keywords": [
     "dsh",
     "deepseek",
     "harness",
     "plugin",
-    "template"
+    "workspace",
+    "session"
   ],
   "exports": {
     ".": {
@@ -20,11 +23,15 @@
     "./client": {
       "types": "./dist/client/index.d.ts",
       "default": "./dist/client.js"
-    }
+    },
+    "./locale/*.json": "./locale/*.json",
+    "./icon": "./icon.svg"
   },
   "files": [
     "dist",
     "cordis.patch.yml",
+    "locale/*.json",
+    "icon.svg",
     "README.md"
   ],
   "dsh": {
@@ -35,7 +42,6 @@
       "platform": "web",
       "inject": [
         "@deepseek-ai/dsh-client-locale",
-        "@deepseek-ai/dsh-client-ui-conversation",
         "@deepseek-ai/dsh-client-ui-plugin-manager",
         "@deepseek-ai/dsh-client-ui-renderer",
         "@deepseek-ai/dsh-client-ui-settings"
@@ -67,7 +73,6 @@
     "@deepseek-ai/dsh-agent": "0.2.2-rc.3",
     "@deepseek-ai/dsh-client-locale": "0.2.2-rc.3",
     "@deepseek-ai/dsh-client-store": "0.2.2-rc.3",
-    "@deepseek-ai/dsh-client-ui-conversation": "0.2.2-rc.3",
     "@deepseek-ai/dsh-client-ui-plugin-manager": "0.2.2-rc.3",
     "@deepseek-ai/dsh-client-ui-primitives": "0.2.2-rc.3",
     "@deepseek-ai/dsh-client-ui-renderer": "0.2.2-rc.3",
@@ -86,7 +91,6 @@
     "tsdown": "^0.22.14",
     "typescript": "^6.0.3",
     "vitest": "^4.1.10",
-    "zod": "4.6.6",
     "zustand": "^5.1.0"
   }
 }
