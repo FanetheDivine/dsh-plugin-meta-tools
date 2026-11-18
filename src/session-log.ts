@@ -204,7 +204,7 @@ export function buildSessionLogTool(deps: SessionLogToolDeps): ToolDefinition {
 
       const files: SessionLogFileView[] = [];
       try {
-        await mkdir(directory, { recursive: true });
+        await mkdir(directory, { recursive: true, mode: 0o700 });
         for (const entry of entries) {
           const target =
             entry.role === 'main'
@@ -213,9 +213,13 @@ export function buildSessionLogTool(deps: SessionLogToolDeps): ToolDefinition {
           if (entry.role === 'subagent') {
             await mkdir(join(directory, 'subagents', safeSegment(entry.sessionId)), {
               recursive: true,
+              mode: 0o700,
             });
           }
-          await writeFile(target, serializeSessionLog(entry.header, entry.events), 'utf8');
+          await writeFile(target, serializeSessionLog(entry.header, entry.events), {
+            encoding: 'utf8',
+            mode: 0o600,
+          });
           files.push({ path: target, sessionId: entry.sessionId, role: entry.role });
         }
       } catch (error) {

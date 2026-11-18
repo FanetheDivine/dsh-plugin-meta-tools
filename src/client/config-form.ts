@@ -47,7 +47,7 @@ function switchSpec(field: ToolName): SettingsFieldSpec {
 const SWITCH_SPECS: SettingsFieldSpec[] = TOOL_NAMES.map(switchSpec);
 
 /**
- * 暂存六处编辑，保存时一次写入宿主配置。
+ * 暂存十一个开关的编辑，保存时一次写入宿主配置。
  * 保留模式：离开配置页丢弃草稿，写入只发生在保存。
  */
 export class PluginConfigForm {
