@@ -23,7 +23,7 @@
 
 **Purpose**: 让内部服务类型能够表达宿主的真实信号参数，保持现有调用可编译。
 
-- [ ] T002 在 `src/types.ts` 的 `SessionControllerLike.prompt` 增加第二个可选 `signal: AbortSignal` 参数，作为两条故事修复前的兼容类型
+- [X] T002 在 `src/types.ts` 的 `SessionControllerLike.prompt` 增加第二个可选 `signal: AbortSignal` 参数，作为两条故事修复前的兼容类型
 
 **Checkpoint**: 内部类型可传递执行信号，公开工具契约不变。
 

@@ -210,8 +210,11 @@ export interface SessionControllerLike {
     readonly sessionId: string;
     readonly title: string;
   }): Promise<SessionRenameResultLike>;
-  /** 投递一条消息。 */
-  prompt(request: SessionPromptRequestLike): Promise<{ readonly accepted: true }>;
+  /** 投递一条消息，并接收调用方的取消信号。 */
+  prompt(
+    request: SessionPromptRequestLike,
+    signal?: AbortSignal,
+  ): Promise<{ readonly accepted: true }>;
   /** 取消当前轮次。 */
   cancel(request: { readonly sessionId: string }): { readonly accepted: true };
 }
