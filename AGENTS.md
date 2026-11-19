@@ -7,7 +7,7 @@ DSH 插件 `dsh-plugin-meta-tools`，为模型提供工作区与会话工具。�
 
 # 文档索引
 
-- [README.md](./README.md) 了解项目功能。
+- [README.md](./README.md)：面向用户的元工具说明。
 - [how-it-works.md](./docs/how-it-works.md)：插件的构造方式与运行流程。
 - [known-risks.md](./docs/known-risks.md)：已知风险与宿主限制。
 - [development.md](./docs/development.md)：本地开发、命令、测试、Spec Kit 命令一览、worktree 扩展维护与文件地图。

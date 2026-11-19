@@ -1,5 +1,12 @@
 <!--
 Sync Impact Report
+- Version change: 2.0.0 → 2.0.1
+- Modified principles:
+  - III. 文档结构：README 的归属内容改为面向用户的定位、场景、能力与边界；安装、配置键与工具契约归 `docs/`
+- Templates requiring updates: 无
+- Follow-up TODOs: 无
+
+Previous report
 - Version change: 1.11.0 → 2.0.0
 - Modified principles:
   - I. 宿主契约 → I. 宿主依赖版本：只保留依赖版本规则，以同版本 `@deepseek-ai/dsh` 为准
@@ -51,7 +58,7 @@ Sync Impact Report
 
 | 文档 | 读者 | 归属内容 |
 | --- | --- | --- |
-| `README.md` | 插件用户 | 功能、安装、配置、工具 |
+| `README.md` | 插件用户 | 元工具定位、使用场景、能力、权限控制、安全边界与限制 |
 | `AGENTS.md` | 每个会话的 Agent | 通用的信息和指令 |
 | 本宪章 | 执行 Spec Kit 流程的 Agent 与维护者 | 变更过程中必须遵循的硬约束 |
 | `docs/` | 开发者 | 工作机制、已知风险、开发说明 |
@@ -131,4 +138,4 @@ Sync Impact Report
   - PATCH：措辞澄清。
 - `/speckit-plan` 的 Constitution Check 与 `/speckit-analyze` MUST 逐条核对本宪章。
 
-**Version**: 2.0.0 | **Ratified**: 2026-11-17 | **Last Amended**: 2026-11-18
+**Version**: 2.0.1 | **Ratified**: 2026-11-17 | **Last Amended**: 2026-11-19

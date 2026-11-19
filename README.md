@@ -1,90 +1,63 @@
-# dsh-plugin-meta-tools
+# 元工具
 
-DSH 插件：为模型提供操作工作区与会话的元工具。十一个工具可在“插件”面板逐项开关，保存后立即生效。
+元工具让 AI 修改自身的运行环境。
 
-## 功能
+普通工具作用于你的项目，例如读写文件、运行命令。元工具作用于 AI 所在的 DSH：它能整理工作区、开启新会话、指挥其他会话，并回顾会话记录。
 
-- 工作区：列出、注册、重命名与移除注册。
-- 会话读取：按标题查询会话列表；把主会话与 subagent 的日志导出到临时目录。
-- 会话操作：新建、停止、发送 system-reminder、置顶、归档。
-- 服务可选：缺少工作区注册表、会话查询或会话控制服务时，只跳过对应工具，插件照常加载。
-- 数据安全：注册与移除工作区只改注册表，不复制、移动或删除目录与会话日志。
-- 插件页标题与描述随宿主语言切换，中英文各一份。
+## 适用场景
 
-## 安装
+- 让 AI 为新项目注册工作区，并在里面开一个会话继续工作。
+- 让 AI 把一项大任务拆给多个会话，再给它们发送补充要求或停止它们。
+- 让 AI 查找并阅读以前的会话，总结做过的事或找回结论。
+- 让 AI 整理侧栏：重命名工作区，置顶常用会话，归档已完成的会话。
 
-```sh
-dsh plugin add dsh-plugin-meta-tools
-```
+## AI 能做什么
 
-也可以安装本地目录：`dsh plugin add <插件目录>`。
+### 工作区
 
-本插件与 `@local/dsh-harness-tools` 提供同名工具。同一部署只保留其中一个，安装前先移除另一个的插件行。
+- 查看已注册的工作区、路径与会话数。
+- 把已有目录注册为工作区。
+- 重命名工作区。
+- 从列表移除工作区。
 
-## 配置
+### 查看会话
 
-| 键 | 默认值 | 说明 |
-| --- | --- | --- |
-| `workspace_list` | `true` | 是否注册 `workspace_list` |
-| `workspace_create` | `true` | 是否注册 `workspace_create` |
-| `workspace_remove` | `true` | 是否注册 `workspace_remove` |
-| `workspace_rename` | `true` | 是否注册 `workspace_rename` |
-| `session_list` | `true` | 是否注册 `session_list` |
-| `session_get` | `true` | 是否注册 `session_get` |
-| `session_create` | `true` | 是否注册 `session_create` |
-| `session_stop` | `true` | 是否注册 `session_stop` |
-| `session_send` | `true` | 是否注册 `session_send` |
-| `session_pin` | `true` | 是否注册 `session_pin` |
-| `session_archive` | `true` | 是否注册 `session_archive` |
+- 按工作区、目录或标题查找会话。
+- 读取会话日志，包含会话中 subagent 的日志。
 
-十一个字段都是 `volatile`：在“插件”页的行详情里修改并保存，插件不重启，工具按新开关注册或注销。配置中的键缺省或为 `null` 时按 `true` 处理；未知键或非布尔值使插件加载失败。
+### 管理会话
 
-## 工具
+- 在指定工作区新建会话，并可附带第一条消息。
+- 向其他会话发送消息，消息在对方的下一步送达。
+- 停止会话当前的工作。
+- 置顶、取消置顶会话。
+- 归档会话，或把归档的会话恢复。
 
-| 工具 | 参数 | 返回 |
-| --- | --- | --- |
-| `workspace_list` | 无 | 工作区数量与逐项 id、标题、路径、状态、会话计数 |
-| `workspace_create` | `path`、`title?` | `created`、工作区视图与可选说明 |
-| `workspace_remove` | `workspace_id` | `removed`、被移除的 id 与路径 |
-| `workspace_rename` | `workspace_id`、`title` | 更新后的工作区视图 |
-| `session_list` | `workspace_id?`、`cwd?`、`query?`、`limit?`、`titles?`、`include_archived?` | 会话总数、本页摘要与可选说明 |
-| `session_get` | `session_id` | 临时目录、主会话文件、全部文件与 subagent 数 |
-| `session_create` | `workspace_id?`、`cwd?`、`agent_preset?`、`title?`、`prompt?` | 新会话 id、预设、标题与是否已投递首条消息 |
-| `session_stop` | `session_id` | `accepted` 与会话 id |
-| `session_send` | `session_id`、`text` | `delivered` 与会话 id |
-| `session_pin` | `session_id`、`remove?` | `pinned` 与会话 id |
-| `session_archive` | `session_id`、`remove?`、`stop_activity?` | `archived` 与会话 id |
+## 控制 AI 的权限
 
-`session_create` 的首条消息与 `session_send` 均以来源类型 `dsh-plugin-meta-tools` 插话。空闲会话开始新轮次，运行中会话在最近步骤接收。`session_send` 仅接受普通会话；subagent 会话返回宿主归属错误。
+在“插件”页打开“元工具”的配置页，每项能力都有独立开关：
 
-`session_list` 的 `query` 对折叠标题做大小写不敏感的子串匹配。列表省略调用方会话；subagent 会话归并到主会话。标题查询最多折叠 200 个会话的标题，超过时结果附说明。
+- 关闭的能力对 AI 不可见。
+- 保存后立即生效，无需重启。
+- 只想让 AI 查阅，可以只保留“查看工作区”“查找会话”“读取会话日志”。
 
-## 会话日志
+## 安全边界
 
-`session_get` 把日志写成规范 JSONL：
-
-```text
-<系统临时目录>/dsh-plugin-meta-tools/session-logs/<session-id>-<时间戳>-<随机后缀>/
-├── session.jsonl 或 session.vN.jsonl
-└── subagents/<session-id>/session[.vN].jsonl
-```
-
-- 首行是会话头，其后每行一个事件。
-- 文件名与内容对齐宿主 `/export` 的日志产物。
-- 每次调用使用独立目录，历史目录由操作系统清理。
-- 不导出图片与附件。
+- 移除工作区只把它从列表中去掉，目录与会话记录保留。
+- AI 只能归档会话，归档的会话可以随时恢复。
+- 读取会话日志时，日志复制到系统临时目录，原始记录保持不变。
+- AI 只能操作当前这一个 DSH。
 
 ## 限制
 
-- 只操作加载本插件的 DSH，不支持跨安装。
-- 不提供会话删除与恢复已删除会话；归档可以通过 `remove` 恢复。
-- `workspace_remove` 只移除注册；目录与全部会话日志保留。
-- `session_get` 的临时目录不自动清理，长期运行需要自行清理。
-- 归档运行中的会话需要 `stop_activity: true`；否则返回错误并提示先停止。
-- 置顶要求会话存在且未归档；归档会移除置顶。
-- 发送消息默认排队，`mode: "steer"` 在最近一步投递；subagent 目标按队列投递。
-- 停止与发送在目标是 subagent 会话时走子代理路由，调用方必须是它的祖先。
+- 读取的日志不含图片与附件。
+- 日志副本留在系统临时目录，由操作系统定期清理。
+- 正在运行的会话需要先停止才能归档。
+- 已归档的会话无法置顶。
+- 消息只能发给普通会话。
+- 停止 subagent 会话时，AI 所在会话必须是它的上级。
+- 按标题查找时，最多检索最近的 200 个会话。
 
 ## 开发
 
-构建、测试与实机验证见 [docs/development.md](./docs/development.md)。
+安装、配置键、工具契约与本地开发见 [docs/development.md](./docs/development.md) 与 [docs/how-it-works.md](./docs/how-it-works.md)。

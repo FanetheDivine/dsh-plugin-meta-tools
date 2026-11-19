@@ -40,11 +40,11 @@ description: "Task list for meta tools branding and user-facing docs"
 
 **Independent Test**: 通读 `README.md`，确认没有安装命令、配置键表与工具参数表；`docs/` 中能找到被移出的信息。
 
-- [ ] T005 [US2] 把工具一览、配置键与会话日志目录结构迁入 `docs/how-it-works.md`，作为“工具一览”“配置键”“会话日志目录”小节
-- [ ] T006 [P] [US2] 把安装命令与同名工具冲突提示迁入 `docs/development.md` 的“安装”小节
-- [ ] T007 [US2] 重写 `README.md`：元工具定义、适用场景、AI 能做什么（按三组）、如何限制、安全边界、限制、开发链接
-- [ ] T008 [P] [US2] 修订 `.specify/memory/constitution.md` 原则 III 表格中 README 的归属内容为“元工具定位、使用场景、能力、限制”，版本 2.0.1，更新 Sync Impact Report
-- [ ] T009 [P] [US2] 在 `AGENTS.md` 文档索引中同步 README 的说明
+- [X] T005 [US2] 把工具一览、配置键与会话日志目录结构迁入 `docs/how-it-works.md`，作为“工具一览”“配置键”“会话日志目录”小节
+- [X] T006 [P] [US2] 把安装命令与同名工具冲突提示迁入 `docs/development.md` 的“安装”小节
+- [X] T007 [US2] 重写 `README.md`：元工具定义、适用场景、AI 能做什么（按三组）、如何限制、安全边界、限制、开发链接
+- [X] T008 [P] [US2] 修订 `.specify/memory/constitution.md` 原则 III 表格中 README 的归属内容为“元工具定位、使用场景、能力、限制”，版本 2.0.1，更新 Sync Impact Report
+- [X] T009 [P] [US2] 在 `AGENTS.md` 文档索引中同步 README 的说明
 
 **Checkpoint**: `pnpm format && pnpm check` 通过。
 
