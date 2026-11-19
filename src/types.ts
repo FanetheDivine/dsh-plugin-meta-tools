@@ -15,6 +15,13 @@ export type { PluginConfig } from './config.ts';
 /** 宿主类型。插件内统一从这里导入。 */
 export type { Agent, Context, Events, ToolDefinition, ToolRunContext, Volatile };
 
+declare module '@deepseek-ai/dsh-llm' {
+  interface MessageSourceMap {
+    /** 本插件投递的用户角色消息。 */
+    'dsh-plugin-meta-tools': { kind: 'dsh-plugin-meta-tools' };
+  }
+}
+
 /** 工具返回给宿主的 JSON 值。 */
 export type ToolJsonValue =
   | string
@@ -201,6 +208,9 @@ export interface SessionPromptRequestLike {
   readonly content: readonly TextContentBlockLike[];
 }
 
+/** 普通会话 Agent 的解析结果。 */
+export type SessionAgentResultLike = { readonly agent: Agent } | { readonly error: Error };
+
 /** 会话控制服务（`ctx.sessionController`）中本插件用到的部分。 */
 export interface SessionControllerLike {
   /** 新建或复用会话。 */
@@ -210,6 +220,8 @@ export interface SessionControllerLike {
     readonly sessionId: string;
     readonly title: string;
   }): Promise<SessionRenameResultLike>;
+  /** 解析或恢复普通会话的 Agent。 */
+  resolveAgent?(sessionId: string): Promise<SessionAgentResultLike>;
   /** 投递一条消息，并接收调用方的取消信号。 */
   prompt(
     request: SessionPromptRequestLike,

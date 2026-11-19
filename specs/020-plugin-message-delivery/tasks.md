@@ -26,7 +26,7 @@ description: "Task list for plugin message delivery constraints"
 
 **⚠️ CRITICAL**: 类型完成后再修改工具行为。
 
-- [ ] T002 在 `src/types.ts` 增加 `resolveAgent` 返回联合与 `dsh-plugin-meta-tools` 消息来源声明，删除仅供会话 `prompt` 和 subagent 消息回退使用的类型
+- [X] T002 在 `src/types.ts` 增加 `resolveAgent` 返回联合与 `dsh-plugin-meta-tools` 消息来源声明
 
 **Checkpoint**: `SessionControllerLike` 能解析普通 Agent，消息来源接受当前插件名。
 
@@ -45,7 +45,7 @@ description: "Task list for plugin message delivery constraints"
 
 ### Implementation for User Story 1
 
-- [ ] T005 [US1] 在 `src/session-ops.ts` 用 `createUserMessage` 和共享插话函数替换两处 `sessionController.prompt`，设置 `source.kind` 为 `PLUGIN_LABEL`，保留各自错误前缀并移除 `subagents.sendMessage` 回退
+- [ ] T005 [US1] 在 `src/session-ops.ts` 用 `createUserMessage` 和共享插话函数替换两处 `sessionController.prompt`，设置 `source.kind` 为 `PLUGIN_LABEL`，保留各自错误前缀并移除 `subagents.sendMessage` 回退；在 `src/types.ts` 删除旧投递类型
 
 **Checkpoint**: 两条链路只产生插件来源的插话，空文本与创建错误行为保持有效。
 
