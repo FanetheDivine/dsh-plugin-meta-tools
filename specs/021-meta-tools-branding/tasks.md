@@ -16,7 +16,7 @@ description: "Task list for meta tools branding and user-facing docs"
 
 **Purpose**: 提交 spec 产物。
 
-- [ ] T001 提交 `specs/021-meta-tools-branding/` 下的 spec、plan、research、data-model、contracts、quickstart、checklists 与 tasks
+- [X] T001 提交 `specs/021-meta-tools-branding/` 下的 spec、plan、research、data-model、contracts、quickstart、checklists 与 tasks
 
 ---
 
@@ -26,9 +26,9 @@ description: "Task list for meta tools branding and user-facing docs"
 
 **Independent Test**: `pnpm test:code` 中元数据测试断言新标题与描述；在“插件”页查看行与卡片。
 
-- [ ] T002 [US1] 更新 `tests/metadata.test.ts` 的“标题与描述按用户文案”断言为 research.md 中的新标题与描述
-- [ ] T003 [P] [US1] 更新 `locale/zh.json` 与 `locale/en.json`：标题“元工具”与“Meta tools”，描述取自 research.md
-- [ ] T004 [P] [US1] 重绘 `icon.svg`：`width="36" height="36" viewBox="0 0 36 36"`，扳手加约 300° 首尾相接的圆弧箭头，单色 `#5b7cfa` 描边，无底板、无文字，保留 `<title>dsh-plugin-meta-tools</title>`
+- [X] T002 [US1] 更新 `tests/metadata.test.ts` 的“标题与描述按用户文案”断言为 research.md 中的新标题与描述
+- [X] T003 [P] [US1] 更新 `locale/zh.json` 与 `locale/en.json`：标题“元工具”与“Meta tools”，描述取自 research.md
+- [X] T004 [P] [US1] 重绘 `icon.svg`：`width="36" height="36" viewBox="0 0 36 36"`，扳手加约 300° 首尾相接的圆弧箭头，单色 `#5b7cfa` 描边，无底板、无文字，保留 `<title>dsh-plugin-meta-tools</title>`
 
 **Checkpoint**: `pnpm format && pnpm check` 通过。
 

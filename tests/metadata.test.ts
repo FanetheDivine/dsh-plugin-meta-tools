@@ -55,10 +55,14 @@ describe('插件元数据资源', () => {
   });
 
   it('标题与描述按用户文案', () => {
-    expect(metaOf('zh').title).toBe('为模型提供元工具');
-    expect(metaOf('zh').description).toBe('让Agent能够操作工作区和会话');
-    expect(metaOf('en').title).toBe('Meta tools for the model');
-    expect(metaOf('en').description).toBe('Lets the agent operate workspaces and sessions');
+    expect(metaOf('zh').title).toBe('元工具');
+    expect(metaOf('zh').description).toBe(
+      '为 AI 提供修改自身运行环境的元工具：管理工作区，新建、指挥、置顶与归档会话，读取会话日志。',
+    );
+    expect(metaOf('en').title).toBe('Meta tools');
+    expect(metaOf('en').description).toBe(
+      'Meta tools that let AI change its own environment: manage workspaces; create, steer, pin, and archive sessions; read session logs.',
+    );
   });
 
   it('各语言的 meta 键集一致', () => {
