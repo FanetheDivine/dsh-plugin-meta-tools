@@ -144,7 +144,7 @@ export function buildSessionTool(name: 'session_list', deps: SessionToolDeps): T
   return defineTool({
     name: 'session_list',
     description:
-      "List sessions newest first, with ids, titles, and working directories. Filter by workspace, working directory, or a case-insensitive substring of the title. The calling session is omitted; subagent sessions appear as their main session. Stored titles are folded from session logs, so a title read can touch each listed session's log.",
+      "List DSH (DeepSeek Harness) sessions newest first, with ids, titles, and working directories. Filter by workspace, working directory, or a case-insensitive substring of the title. The calling session is omitted; subagent sessions appear as their main session. Stored titles are folded from session logs, so a title read can touch each listed session's log.",
     parameters: {
       workspace_id: {
         type: 'string',

@@ -143,7 +143,7 @@ export function buildSessionCreateTool(deps: SessionControlDeps): ToolDefinition
   return defineTool({
     name: 'session_create',
     description:
-      'Create a session, optionally in a workspace or directory, with an agent preset, an optional provider/model/effort selection, a title, and a first prompt. Returns the new session id.',
+      'Create a DSH (DeepSeek Harness) session, optionally in a workspace or directory, with an agent preset, an optional provider/model/effort selection, a title, and a first prompt. Returns the new session id.',
     parameters: {
       workspace_id: {
         type: 'string',
@@ -284,7 +284,8 @@ export function buildSessionStopTool(deps: SessionControlDeps): ToolDefinition {
   const { sessionController } = deps;
   return defineTool({
     name: 'session_stop',
-    description: 'Cancel the current turn of one session without dropping its pending messages.',
+    description:
+      'Cancel the current turn of one DSH (DeepSeek Harness) session without dropping its pending messages.',
     parameters: {
       session_id: {
         type: 'string',
@@ -325,7 +326,7 @@ export function buildSessionSendTool(deps: SessionControlDeps): ToolDefinition {
   return defineTool({
     name: 'session_send',
     description:
-      'Send one steering message to an ordinary session as a system reminder with source kind dsh-plugin-meta-tools. The text is wrapped in a <system-reminder> frame, and a closing tag inside the text is escaped. Running sessions receive it at the nearest step; idle sessions start a turn.',
+      'Send one steering message to an ordinary DSH (DeepSeek Harness) session as a system reminder with source kind dsh-plugin-meta-tools. The text is wrapped in a <system-reminder> frame, and a closing tag inside the text is escaped. Running sessions receive it at the nearest step; idle sessions start a turn.',
     parameters: {
       session_id: {
         type: 'string',
@@ -367,7 +368,7 @@ export function buildSessionPinTool(deps: SessionNavigationDeps): ToolDefinition
   return defineTool({
     name: 'session_pin',
     description:
-      'Pin a session to the top of its list, or remove the pin. A pinned session must exist and must not be archived.',
+      'Pin a DSH (DeepSeek Harness) session to the top of its list, or remove the pin. A pinned session must exist and must not be archived.',
     parameters: {
       session_id: { type: 'string', required: true, description: 'Session to pin or unpin.' },
       remove: {
@@ -404,7 +405,7 @@ export function buildSessionArchiveTool(deps: SessionNavigationDeps): ToolDefini
   return defineTool({
     name: 'session_archive',
     description:
-      'Archive a session so it leaves the normal list, or restore an archived session. Archiving keeps the directory and every session log. A session with running work is refused unless stop_activity is true.',
+      'Archive a DSH (DeepSeek Harness) session so it leaves the normal list, or restore an archived session. Archiving keeps the directory and every session log. A session with running work is refused unless stop_activity is true.',
     parameters: {
       session_id: { type: 'string', required: true, description: 'Session to archive or restore.' },
       remove: {
