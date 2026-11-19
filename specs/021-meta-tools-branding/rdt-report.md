@@ -33,5 +33,4 @@
 
 ## 产物
 
-- profile 目录下的 `shots/`：卡片、详情页与配置页截图。
-- profile 目录下的 `cordis.patch.yml`：开关保存与恢复记录。
+验收后删除全部临时 profile 与其 `shots/` 截图、`cordis.patch.yml` 记录。本报告的断言是唯一留存证据。
