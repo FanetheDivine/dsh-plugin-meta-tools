@@ -56,11 +56,11 @@ description: "Task list for meta tools branding and user-facing docs"
 
 **Independent Test**: 配置页测试断言三个分组标题、十一行标签与说明、开关无障碍名称。
 
-- [ ] T010 [US3] 更新 `tests/client.test.ts`：分组键与顺序覆盖 `TOOL_NAMES`；`config.<tool>.description` 中英齐全；page 渲染三个 `data-dsh-meta-tools-group`、十一段说明；标签按 contracts/config-page.md；summary 新文案
-- [ ] T011 [US3] 在 `src/constants.ts` 增加 `TOOL_GROUPS`：`workspace`、`sessionRead`、`sessionManage` 三组，组内顺序与 `TOOL_NAMES` 一致
-- [ ] T012 [US3] 在 `src/client/locales.ts` 增加分组标题与 `config.<tool>.description`，按 contracts/config-page.md 修改标签与 `config.summary`
-- [ ] T013 [US3] 在 `src/client/config-page.tsx` 按 `TOOL_GROUPS` 渲染分组标题与行；每行左侧标签与说明，右侧 `Switch`；行间使用 `--dsw-alias-border-l2` 分隔线
-- [ ] T014 [US3] 在 `docs/i18n.md` 与 `docs/how-it-works.md` 的前端小节写明分组与说明键
+- [X] T010 [US3] 更新 `tests/client.test.ts`：分组键与顺序覆盖 `TOOL_NAMES`；`config.<tool>.description` 中英齐全；page 渲染三个 `data-dsh-meta-tools-group`、十一段说明；标签按 contracts/config-page.md；summary 新文案
+- [X] T011 [US3] 在 `src/constants.ts` 增加 `TOOL_GROUPS`：`workspace`、`sessionRead`、`sessionManage` 三组，组内顺序与 `TOOL_NAMES` 一致
+- [X] T012 [US3] 在 `src/client/locales.ts` 增加分组标题与 `config.<tool>.description`，按 contracts/config-page.md 修改标签与 `config.summary`
+- [X] T013 [US3] 在 `src/client/config-page.tsx` 按 `TOOL_GROUPS` 渲染分组标题与行；每行左侧标签与说明，右侧 `Switch`；行间使用 `--dsw-alias-border-l2` 分隔线
+- [X] T014 [US3] 在 `docs/i18n.md` 与 `docs/how-it-works.md` 的前端小节写明分组与说明键
 
 **Checkpoint**: `pnpm format && pnpm check` 通过。
 

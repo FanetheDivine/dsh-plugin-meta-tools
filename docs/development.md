@@ -158,7 +158,7 @@ icon.svg                    # 插件图标
 src/
 ├── index.ts                # 打包入口：name、inject、apply、Config 与工具组接线
 ├── config.ts               # 十一个开关的 Config schema、默认值、严格校验与热重载读取
-├── constants.ts            # 插件标识、工具名与结果上限
+├── constants.ts            # 插件标识、工具名、能力分组与结果上限
 ├── types.ts                # 宿主类型再导出与工作区/会话服务契约
 ├── utils.ts                # 对象判断、时间格式化与数值夹取
 ├── workspace-tools.ts      # 四个工作区工具与渲染
