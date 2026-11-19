@@ -153,7 +153,7 @@ export function buildSessionLogTool(deps: SessionLogToolDeps): ToolDefinition {
   return defineTool({
     name: 'session_get',
     description:
-      'Export one session log to a temporary directory and return the written file paths. The export contains the main session and one log per subagent session. Each file is JSONL: a header line followed by one event per line. Read the returned files to inspect the session.',
+      'Export one DSH (DeepSeek Harness) session log to a temporary directory and return the written file paths. The export contains the main session and one log per subagent session. Each file is JSONL: a header line followed by one event per line. Read the returned files to inspect the session.',
     parameters: {
       session_id: {
         type: 'string',
