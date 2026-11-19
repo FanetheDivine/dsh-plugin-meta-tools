@@ -32,6 +32,18 @@ function makeController() {
   return { controller, create, rename, prompt, cancel };
 }
 
+/** 按宿主入口检查投递信号并接受消息。 */
+async function acceptPromptWithHostSignal(
+  _request: SessionPromptRequestLike,
+  signal?: AbortSignal,
+): Promise<{ accepted: true }> {
+  if (signal === undefined) {
+    throw new TypeError("Cannot read properties of undefined (reading 'throwIfAborted')");
+  }
+  signal.throwIfAborted();
+  return { accepted: true };
+}
+
 /** 假工作区注册表。 */
 function makeRegistry() {
   const pinSession = vi.fn(async () => undefined);
@@ -105,6 +117,28 @@ describe('session_create', () => {
       title: '新会话',
       prompted: true,
     });
+  });
+
+  it('首条消息传递当前执行信号', async () => {
+    const { controller, prompt } = makeController();
+    prompt.mockImplementationOnce(acceptPromptWithHostSignal);
+    const signal = new AbortController().signal;
+    const execution = { signal } as never;
+    const tool = buildSessionCreateTool({ sessionController: controller });
+
+    await expect(tool.execute({ prompt: 'hello' }, execution)).resolves.toMatchObject({
+      sessionId: 'session-new',
+      prompted: true,
+    });
+    expect(prompt.mock.calls[0]?.[1]).toBe(signal);
+  });
+
+  it('不带首条消息时保持空白会话', async () => {
+    const { controller, prompt } = makeController();
+    const tool = buildSessionCreateTool({ sessionController: controller });
+
+    await expect(tool.execute({}, exec)).resolves.toMatchObject({ prompted: false });
+    expect(prompt).not.toHaveBeenCalled();
   });
 
   it('未给位置时沿用调用方目录', async () => {
@@ -199,6 +233,19 @@ describe('session_send', () => {
     const text = prompt.mock.calls[0]?.[0]?.content[0]?.text ?? '';
     expect(text).toContain('<\\/system-reminder>');
     expect(text.match(/<\/system-reminder>/g)).toHaveLength(1);
+  });
+
+  it.each(['queue', 'steer'] as const)('%s 投递传递当前执行信号', async (mode) => {
+    const { controller, prompt } = makeController();
+    prompt.mockImplementationOnce(acceptPromptWithHostSignal);
+    const signal = new AbortController().signal;
+    const execution = { signal } as never;
+    const tool = buildSessionSendTool({ sessionController: controller });
+
+    await expect(
+      tool.execute({ session_id: 's1', text: 'reminder', mode }, execution),
+    ).resolves.toMatchObject({ delivered: true, sessionId: 's1', mode });
+    expect(prompt.mock.calls[0]?.[1]).toBe(signal);
   });
 
   it('subagent 会话走 sendMessage 路由并排队投递', async () => {
