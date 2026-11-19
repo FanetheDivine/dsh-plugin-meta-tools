@@ -147,6 +147,15 @@ describe('工具契约', () => {
     expect(property(tools.session_pin, 'remove')).toMatchObject({ type: 'boolean' });
   });
 
+  it('描述标明 DSH 归属', () => {
+    for (const [name, tool] of Object.entries(definitions())) {
+      expect(tool.description).toContain('DSH');
+      expect(tool.description).toContain('DeepSeek Harness');
+      const object = name.startsWith('workspace_') ? 'workspace' : 'session';
+      expect(tool.description).toContain(`DSH (DeepSeek Harness) ${object}`);
+    }
+  });
+
   it('说明与参数文案不含 profile', () => {
     for (const [_name, tool] of Object.entries(definitions())) {
       expect(tool.description.toLowerCase()).not.toContain('profile');
