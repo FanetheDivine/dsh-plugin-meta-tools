@@ -40,12 +40,12 @@ description: "Task list for plugin message delivery constraints"
 
 ### Tests for User Story 1
 
-- [ ] T003 [P] [US1] 更新 `tests/session-ops.test.ts`，覆盖两处 `resolveAgent + steer`、完整消息来源、正文转义、解析错误、取消前后检查及 subagent 归属拒绝，并确认旧实现失败
-- [ ] T004 [P] [US1] 更新 `tests/plugin.test.ts`，通过 `tests/helpers.ts` 的模拟 `ctx` 验证注册后的 `session_send` 以插件来源插话，并确认旧实现失败
+- [X] T003 [P] [US1] 更新 `tests/session-ops.test.ts`，覆盖两处 `resolveAgent + steer`、完整消息来源、正文转义、解析错误、取消前后检查及 subagent 归属拒绝，并确认旧实现失败
+- [X] T004 [P] [US1] 更新 `tests/plugin.test.ts`，通过 `tests/helpers.ts` 的模拟 `ctx` 验证注册后的 `session_send` 以插件来源插话，并确认旧实现失败
 
 ### Implementation for User Story 1
 
-- [ ] T005 [US1] 在 `src/session-ops.ts` 用 `createUserMessage` 和共享插话函数替换两处 `sessionController.prompt`，设置 `source.kind` 为 `PLUGIN_LABEL`，保留各自错误前缀并移除 `subagents.sendMessage` 回退；在 `src/types.ts` 删除旧投递类型
+- [X] T005 [US1] 在 `src/session-ops.ts` 用 `createUserMessage` 和共享插话函数替换两处 `sessionController.prompt`，设置 `source.kind` 为 `PLUGIN_LABEL`，保留各自错误前缀并移除 `subagents.sendMessage` 回退；在 `src/types.ts` 删除旧投递类型
 
 **Checkpoint**: 两条链路只产生插件来源的插话，空文本与创建错误行为保持有效。
 

@@ -4,7 +4,7 @@ import { describe, expect, it, vi } from 'vitest';
 import { Config } from '../src/config.ts';
 import { PLUGIN_LABEL } from '../src/constants.ts';
 import { apply, inject, name } from '../src/index.ts';
-import type { SessionPromptRequestLike, ToolDefinition } from '../src/types.ts';
+import type { ToolDefinition } from '../src/types.ts';
 import { makeCtx, volatile } from './helpers.ts';
 
 describe('模块契约', () => {
@@ -140,17 +140,13 @@ describe('apply 接线', () => {
     expect(String(warns[0]?.args[0])).toContain('session_get must be a boolean');
   });
 
-  it('session_send 从注册到执行传递当前执行信号', async () => {
+  it('session_send 从注册到执行以插件来源插话', async () => {
     const ctx = makeCtx();
-    const prompt = vi.fn(async (_request: SessionPromptRequestLike, signal?: AbortSignal) => {
-      // 宿主 prompt 在投递前检查必需信号。
-      if (signal === undefined) {
-        throw new TypeError("Cannot read properties of undefined (reading 'throwIfAborted')");
-      }
-      signal.throwIfAborted();
-      return { accepted: true as const };
-    });
-    ctx._setService('sessionController', { prompt });
+    const prompt = vi.fn(async () => ({ accepted: true as const }));
+    const steer = vi.fn();
+    const agent = { steer };
+    const resolveAgent = vi.fn(async (_sessionId: string) => ({ agent }));
+    ctx._setService('sessionController', { prompt, resolveAgent });
     apply(ctx, { session_create: false, session_stop: false });
     const tool = ctx._registeredTools.find(
       (tool) => tool.name === 'session_send',
@@ -159,7 +155,16 @@ describe('apply 接线', () => {
 
     await expect(
       tool.execute({ session_id: 's1', text: 'reminder' }, { signal } as never),
-    ).resolves.toMatchObject({ delivered: true, sessionId: 's1', mode: 'queue' });
-    expect(prompt.mock.calls[0]?.[1]).toBe(signal);
+    ).resolves.toMatchObject({ delivered: true, sessionId: 's1' });
+    expect(resolveAgent).toHaveBeenCalledWith('s1');
+    expect(steer).toHaveBeenCalledWith(
+      expect.objectContaining({
+        id: expect.any(String),
+        role: 'user',
+        source: { kind: 'dsh-plugin-meta-tools' },
+        content: [{ type: 'text', text: '<system-reminder>\nreminder\n</system-reminder>' }],
+      }),
+    );
+    expect(prompt).not.toHaveBeenCalled();
   });
 });
