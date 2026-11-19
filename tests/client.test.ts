@@ -5,16 +5,24 @@ import type { SettingsFieldState } from '@deepseek-ai/dsh-client-ui-primitives';
 import type {} from '@deepseek-ai/dsh-client-ui-renderer/client';
 import type {} from '@deepseek-ai/dsh-client-ui-settings/client';
 import type { TranslateNS } from '@deepseek-ai/dsh-client-ui-slots';
-import { createElement } from 'react';
+import { createElement, type ReactElement } from 'react';
 import { renderToStaticMarkup } from 'react-dom/server';
 import { describe, expect, it, vi } from 'vitest';
 
 import { type ConfigFormState, ROW_ID, ROW_KEY } from '../src/client/config-form.ts';
-import { ConfigPage } from '../src/client/config-page.tsx';
+import { ConfigPage, renderModelSlot } from '../src/client/config-page.tsx';
 import { apply, inject } from '../src/client/index.ts';
 import { en, NS, zh } from '../src/client/locales.ts';
 import { TOOL_GROUPS, TOOL_NAMES } from '../src/constants.ts';
 import { makeClientCtx } from './helpers.ts';
+
+vi.mock('@deepseek-ai/dsh-client-ui-model-selection/src/client/ModelSelect.tsx', async () => {
+  const { createElement } = await import('react');
+  return {
+    ModelSelect: (props: { locked: boolean }) =>
+      createElement('button', { type: 'button', disabled: props.locked }, '官方模型选择器'),
+  };
+});
 
 /** 用字典与 `{name}` 模板参数构造翻译函数，行为与宿主 locale 座一致。 */
 function translate(dict: Record<string, string>): TranslateNS<typeof NS> {
@@ -44,6 +52,9 @@ function pageState(overrides: Partial<ConfigFormState> = {}): ConfigFormState {
     saving: false,
     failed: false,
     ...fieldStates(),
+    session_provider: { text: '', overridden: false, invalid: false },
+    session_model: { text: '', overridden: false, invalid: false },
+    session_effort: { text: '', overridden: false, invalid: false },
     ...overrides,
   };
 }
@@ -62,13 +73,14 @@ function renderConfigPage(
     resetField: vi.fn(),
     save: vi.fn(),
     discard: vi.fn(),
+    modelDefaults: {},
   };
   return renderToStaticMarkup(createElement(ConfigPage, props as never));
 }
 
 describe('前端入口', () => {
   it('声明实际使用的客户端服务', () => {
-    expect(inject).toEqual(['slots', 'locale', 'configForms']);
+    expect(inject).toEqual(['slots', 'locale', 'configForms', 'remote', 'remote.session']);
   });
 
   it('注册双语字典与面板配置页', () => {
@@ -170,10 +182,15 @@ describe('配置页', () => {
     expect(en['config.summary']).toContain('meta tools');
   });
 
-  it('page 按三组渲染十一个开关、标签、说明与保存按钮', () => {
+  it('page 先渲染默认模型，再按三组渲染十一个开关、标签、说明与保存按钮', () => {
     const html = renderConfigPage('page', zh);
     const groups = [...html.matchAll(/data-dsh-meta-tools-group="(\w+)"/g)].map((m) => m[1]);
-    expect(groups).toEqual(Object.keys(TOOL_GROUPS));
+    expect(groups).toEqual(['sessionModel', ...Object.keys(TOOL_GROUPS)]);
+    expect(html).toContain(zh['config.group.sessionModel']);
+    expect(html).toContain(zh['config.sessionModel.label']);
+    expect(html).toContain('官方模型选择器');
+    expect(html).not.toContain('智能体团队协作');
+    expect(html).not.toContain('agent team');
     for (const group of Object.keys(TOOL_GROUPS)) {
       expect(html).toContain((zh as Record<string, string>)[`config.group.${group}`]);
     }
@@ -220,5 +237,23 @@ describe('配置页', () => {
     expect(renderConfigPage('page', zh, pageState({ available: false }))).toContain(
       '插件配置不可用。',
     );
+  });
+
+  it('模型标签在名称前显示 provider，且不渲染额外配置项', () => {
+    const owner = {
+      provider: { id: 'kimi', name: 'Kimi' },
+      model: { id: 'kimi-k3.1-pro', name: 'kimi-k3.1-pro' },
+      placement: 'trigger',
+      selected: true,
+    };
+    const label = renderModelSlot(
+      'conversation.input.model.label',
+      owner as never,
+      {} as never,
+    ) as ReactElement;
+    expect(renderToStaticMarkup(label)).toContain('Kimi / kimi-k3.1-pro');
+    expect(
+      renderModelSlot('conversation.input.model.options', {} as never, {} as never),
+    ).toBeNull();
   });
 });

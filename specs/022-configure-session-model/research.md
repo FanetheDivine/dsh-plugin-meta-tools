@@ -35,3 +35,27 @@
 - Decision: 从现有会话控制工具组的作用域读取可选 `llm` 服务，只在使用模型参数时要求它可用。
 - Rationale: `@deepseek-ai/dsh-llm` 已是同版本宿主依赖。缺少 llm 不影响现有新建、停止与发送能力。
 - Alternatives considered: 把 llm 加为整个插件的必需注入服务。该做法会改变插件加载条件。
+
+## 配置页选择器
+
+- Decision: 通过包导出的源码子路径复用官方 `ModelSelect` 与 `ModelCatalogDirectory`，以自定义 `SnapshotStore<ModelDirectoryState>` 驱动。
+- Rationale: 官方组件已包含两级菜单、搜索、键盘操作、目录错误与空状态。自定义 store 让选择只编辑插件表单，避免调用现有会话的模型选择接口。
+- Alternatives considered: 自建简化菜单。该做法会重复官方交互与样式，且容易出现可访问性差异。
+
+## provider 与额外配置项
+
+- Decision: 本地 `renderSlot` 为 trigger、根菜单和模型选项渲染 `provider.name / model.name`；额外 options 槽返回 `null`。
+- Rationale: 标签扩展点覆盖用户要求的三处显示位置。空 options 不渲染团队协作配置项。
+- Alternatives considered: 修改 DSH 原生会话选择器。用户已确认目标为插件配置页。
+
+## 官方样式打包
+
+- Decision: 使用 `@tsdown/css` 处理官方 CSS Module，并在构建完成后把 CSS 幂等内联到 `dist/client.js`。
+- Rationale: 当前客户端产物是单文件 CJS 工厂，CSS import 与额外 CSS 文件不符合加载方式。`css.inject` 只生成 import，不向 DOM 插入样式。
+- Alternatives considered: 复制官方组件与样式到仓库。该做法增加维护副本与升级漂移。
+
+## 默认模型草稿
+
+- Decision: 新增 `session_provider`、`session_model`、`session_effort` 三个 volatile 字符串字段；模型行选择清空 effort，显式 effort 选择写入等级。
+- Rationale: 空 effort 沿用所选模型的默认值，避免把另一模型的 effort 带到新路由。配置页继续只在保存时写入宿主配置。
+- Alternatives considered: 选择模型时保留旧 effort。该值可能不受新模型支持。

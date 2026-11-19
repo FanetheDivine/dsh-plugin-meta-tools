@@ -6,128 +6,83 @@
 
 **Tests**: 宪章要求代码变更同步测试。本列表采用测试先行。
 
-**Organization**: 只有一个 P1 用户故事。每个阶段形成一个 commit。
+**Organization**: 两个用户故事分别交付工具参数与配置页。每个阶段形成一个 commit。
 
 ## Format: `[ID] [P?] [Story] Description`
 
 - **[P]**: 不同文件且无未完成依赖，可并行执行。
-- **[Story]**: US1 对应唯一的用户故事。
+- **[Story]**: US1 为工具参数，US2 为配置页默认模型。
 - 所有路径均相对于仓库根目录。
 
 ## Phase 1: Setup (Shared Infrastructure)
 
-**Purpose**: 固化需求、宿主契约与验证方案
-
 - [X] T001 核对并提交 `specs/022-configure-session-model/` 中的 spec、plan、research、data-model、contracts 与 quickstart
-
----
 
 ## Phase 2: Foundational (Blocking Prerequisites)
 
-**Purpose**: 建立会话模型校验服务的最小类型契约
-
-**⚠️ CRITICAL**: 先完成共享类型，再编写行为测试与实现
-
 - [X] T002 在 `src/types.ts` 增加最小 `LlmLike.resolveCallConfig` 结构契约并提交本阶段；复用宿主 `ModelSelection`，不增加依赖
 
-**Checkpoint**: session_create 可以接收可选 LLM 校验服务，现有运行行为不变
-
----
-
-## Phase 3: User Story 1 - 按任务选择新会话模型 (Priority: P1) 🎯 MVP
+## Phase 3: User Story 1 - 按任务选择新会话模型 (Priority: P1) 🎯
 
 **Goal**: 使用 provider/model/effort 创建会话，并从首轮开始应用选择
 
 **Independent Test**: 完整选择依次通过校验、创建、会话选择、标题与首条消息；省略新参数的既有测试保持通过
 
-### Tests for User Story 1
+- [X] T003 [P] [US1] 在 `tests/contract.test.ts` 增加 provider/model/effort 的可选字符串契约、配对说明与工具描述断言
+- [X] T004 [P] [US1] 在 `tests/session-ops.test.ts` 增加完整选择、空白参数、不完整组合、校验失败、创建后失败及执行顺序测试
+- [X] T005 [P] [US1] 在 `tests/plugin.test.ts` 增加从 `ctx.llm` 到 session_create 的接线测试
+- [X] T006 [US1] 在 `src/session-ops.ts` 实现参数校验、创建前 `resolveCallConfig`、创建后 `agent.model.select` 与包含会话 id 的错误
+- [X] T007 [US1] 在 `src/index.ts` 传入可选 `llm` 服务，保持现有工具注册条件不变
+- [X] T008 [US1] 运行聚焦测试、`pnpm format` 与 `pnpm check`，确认通过后提交本阶段
 
-> 先写测试并确认因功能尚未实现而失败。
+## Phase 4: User Story 2 - 在插件配置页设置默认模型 (Priority: P2) 🎯 MVP
 
-- [ ] T003 [P] [US1] 在 `tests/contract.test.ts` 增加 provider/model/effort 的可选字符串契约、配对说明与更新后的工具描述断言
-- [ ] T004 [P] [US1] 在 `tests/session-ops.test.ts` 增加完整选择、省略 effort、空白参数、不完整组合、校验失败、创建后选择失败及执行顺序测试
-- [ ] T005 [P] [US1] 在 `tests/plugin.test.ts` 增加从 `ctx.llm` 到 session_create 的接线测试，并验证无模型参数时不需要 llm
+**Goal**: 通过官方模型选择器设置新增会话默认配置，模型名前显示 provider，不显示团队协作项
 
-### Implementation for User Story 1
+**Independent Test**: 配置页选择 provider/model/effort 并保存后，未显式传参的新会话使用默认值；显式参数覆盖默认值
 
-- [ ] T006 [US1] 在 `src/session-ops.ts` 实现三个可选参数、去除首尾空白、provider/model 配对及 effort 依赖校验、创建前 `resolveCallConfig`、创建后 `agent.model.select` 与包含会话 id 的错误
-- [ ] T007 [US1] 在 `src/index.ts` 将会话控制作用域中的可选 `llm` 服务传给 session_create，保持现有工具注册条件不变
-- [ ] T008 [US1] 运行 `tests/contract.test.ts`、`tests/session-ops.test.ts` 与 `tests/plugin.test.ts`，确认全部通过后提交本阶段
+- [X] T009 [P] [US2] 在 `tests/config.test.ts` 与 `tests/session-ops.test.ts` 增加默认模型严格校验、回退与显式覆盖测试
+- [X] T010 [P] [US2] 在 `tests/model-defaults.test.ts` 增加目录回显、草稿选择、错误与卸载测试
+- [X] T011 [P] [US2] 在 `tests/client.test.ts` 增加配置页分组、provider 标签与空额外选项测试
+- [X] T012 [US2] 在 `src/config.ts`、`src/constants.ts` 与 `src/client/config-form.ts` 增加三个 volatile 默认模型字段与严格配对校验
+- [X] T013 [US2] 在 `src/client/model-defaults.ts` 复用官方目录并投影配置草稿，选择只编辑表单
+- [X] T014 [US2] 在 `src/client/config-page.tsx`、`src/client/index.ts` 与 `src/client/locales.ts` 接入官方选择器、provider 前缀和空额外选项
+- [X] T015 [US2] 在 `tsdown.config.ts` 与 `tests/client-bundle.test.ts` 内联官方 CSS 并回归单文件客户端产物
+- [X] T016 [US2] 在 `src/session-ops.ts`、`src/index.ts` 与 `tests/plugin.test.ts` 实现默认模型回退、显式覆盖与热更新
+- [X] T017 [US2] 更新 `package.json`、`pnpm-workspace.yaml` 并运行聚焦测试、类型检查、peer 检查与 `pnpm build`
 
-**Checkpoint**: User Story 1 可独立交付；模型选择只写入新会话，不修改全局默认
+## Phase 5: Polish & Cross-Cutting Concerns
 
----
-
-## Phase 4: Polish & Cross-Cutting Concerns
-
-**Purpose**: 同步用户文档、风险说明与完整质量门禁
-
-- [ ] T009 [P] 更新 `README.md`，说明新增会话可选择 provider/model/effort 及配对规则
-- [ ] T010 [P] 更新 `docs/how-it-works.md` 的工具参数、可选服务与会话操作顺序，记录不修改全局默认
-- [ ] T011 [P] 更新 `docs/known-risks.md`，记录创建前校验与创建后选择失败的会话 id 边界
-- [ ] T012 [P] 更新 `CHANGELOG.md` 的 Unreleased Added 条目
-- [ ] T013 按 `specs/022-configure-session-model/quickstart.md` 运行格式、源码测试、构建与产物测试
-- [ ] T014 按 `specs/022-configure-session-model/quickstart.md` 在真实 DSH 验证有效选择、默认兼容、无效 effort 与全局默认不变
-- [ ] T015 审查 `src/`、`tests/`、`README.md`、`docs/` 与 `CHANGELOG.md` 的最终差异，提交本阶段
-
----
+- [X] T018 [P] 更新 `README.md`，说明新增会话默认模型与单次覆盖
+- [X] T019 [P] 更新 `docs/how-it-works.md` 与 `docs/development.md` 的配置、工具、前端机制与测试地图
+- [X] T020 [P] 更新 `docs/known-risks.md` 与 `CHANGELOG.md` 的失败边界、内部接口风险与条目
+- [ ] T021 按 `specs/022-configure-session-model/quickstart.md` 运行 `pnpm format && pnpm check && pnpm full-check`
+- [ ] T022 按 `specs/022-configure-session-model/quickstart.md` 在真实 DSH 验证官方选择器、provider 前缀、无团队协作项、保存与新建会话默认值
+- [ ] T023 审查 `src/`、`tests/`、`docs/`、`README.md`、`CHANGELOG.md` 与构建配置的最终差异，提交本阶段
 
 ## Dependencies & Execution Order
 
-### Phase Dependencies
+- Phase 1 与 Phase 2 已完成。
+- Phase 3 已完成并通过全部源码检查。
+- Phase 4 已完成实现与聚焦验证，等待 Phase 5 完整门禁与实机验收。
+- Phase 5 的 T021 先于 T022，T023 最后执行。
 
-- **Setup (Phase 1)**: 无依赖。
-- **Foundational (Phase 2)**: 依赖 Phase 1，阻塞功能实现。
-- **User Story 1 (Phase 3)**: 依赖 Phase 2；T003、T004、T005 先失败，再执行 T006 与 T007。
-- **Polish (Phase 4)**: 依赖 Phase 3；T009 至 T012 可并行，随后执行验证与最终审查。
+## Parallel Opportunities
 
-### User Story Dependencies
-
-- **User Story 1 (P1)**: 无其他用户故事依赖，覆盖全部 MVP 范围。
-
-### Parallel Opportunities
-
-- T003、T004、T005 分属不同测试文件，可并行。
-- T006 与 T007 分属不同源码文件，可在测试完成后并行。
-- T009、T010、T011、T012 分属不同文档，可并行。
-
----
-
-## Parallel Example: User Story 1
-
-```text
-先并行编写：
-- tests/contract.test.ts 的公开契约测试
-- tests/session-ops.test.ts 的行为与错误测试
-- tests/plugin.test.ts 的服务接线测试
-
-确认失败后，再实现：
-- src/session-ops.ts 的模型配置流程
-- src/index.ts 的 llm 服务接线
-```
-
----
+- T003、T004、T005 分属不同测试文件。
+- T009、T010、T011 分属不同测试文件。
+- T018、T019、T020 分属不同文档。
 
 ## Implementation Strategy
 
-### MVP First (User Story 1 Only)
-
-1. 提交规格与最小类型契约。
-2. 编写并确认新测试失败。
-3. 完成模型校验、会话选择与入口接线。
-4. 运行聚焦测试，形成可独立交付的 MVP。
-
-### Incremental Delivery
-
-1. Phase 1 至 Phase 3 交付完整功能。
-2. Phase 4 同步文档、风险与完整验证。
-3. 每个阶段提交一次，最终审查全部差异。
-
----
+1. 工具参数提供逐次模型选择。
+2. 配置页提供可保存的默认模型，显式参数覆盖默认值。
+3. 官方选择器与样式复用宿主版本，内部接口风险单独记录。
+4. 完成自动门禁与真实 DSH 验收后提交最终阶段。
 
 ## Notes
 
 - provider 与 model 必须成对提供，effort 必须与完整路由同用。
 - 省略 effort 时保持宿主 `reasoningEffort` 字段缺省。
-- 不使用会保存全局默认的 `sessionController.selectModel`。
+- 不使用会保存宿主全局默认的 `sessionController.selectModel`。
 - 创建前校验失败不创建会话；创建后选择失败必须返回会话 id。

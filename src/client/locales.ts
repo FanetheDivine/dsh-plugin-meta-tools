@@ -3,12 +3,17 @@
  * 导出 NS、MetaToolsKey、zh、en；中文字典是键集事实源。
  */
 
+import type { ModelKey } from '@deepseek-ai/dsh-client-ui-model-selection/src/client/locales.ts';
+
 /** 前端使用的字典命名空间，与插件名一致。 */
 export const NS = 'dsh-plugin-meta-tools';
 
 /** 中文字典。 */
 export const zh = {
   'config.summary': '选择向 AI 开放哪些元工具',
+  'config.group.sessionModel': '新增会话',
+  'config.sessionModel.label': '默认模型',
+  'config.sessionModel.description': '选择 AI 新建会话时使用的 provider、模型与推理等级。',
   'config.group.workspace': '工作区',
   'config.group.sessionRead': '查看会话',
   'config.group.sessionManage': '管理会话',
@@ -44,6 +49,10 @@ export const zh = {
 /** 英文字典，键集与中文一致。 */
 export const en: Record<MetaToolsKey, string> = {
   'config.summary': 'Choose which meta tools AI can use',
+  'config.group.sessionModel': 'New sessions',
+  'config.sessionModel.label': 'Default model',
+  'config.sessionModel.description':
+    'Choose the provider, model, and reasoning effort AI uses for new sessions.',
   'config.group.workspace': 'Workspaces',
   'config.group.sessionRead': 'View sessions',
   'config.group.sessionManage': 'Manage sessions',
@@ -87,6 +96,8 @@ declare module '@deepseek-ai/dsh-client-ui-slots' {
   interface LocaleNamespaceMap {
     /** 本插件前端文案，键集取自中文字典。 */
     'dsh-plugin-meta-tools': MetaToolsKey;
+    /** 复用官方模型选择器的文案命名空间。 */
+    model: ModelKey;
   }
 }
 

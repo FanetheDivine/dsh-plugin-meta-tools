@@ -1,4 +1,4 @@
-/** 共享常量：插件标识、十一个工具名、能力分组、配置键与结果上限。 */
+/** 共享常量：插件标识、十一个工具名、三个模型配置键、能力分组与结果上限。 */
 
 /** 错误消息、日志与行 id 使用的插件标识。 */
 export const PLUGIN_LABEL = 'dsh-plugin-meta-tools';
@@ -36,6 +36,16 @@ export const TOOL_NAMES = [...WORKSPACE_TOOL_NAMES, ...SESSION_TOOL_NAMES] as co
 
 /** 工具名联合类型。 */
 export type ToolName = (typeof TOOL_NAMES)[number];
+
+/** 新增会话默认模型的配置键。 */
+export const SESSION_MODEL_CONFIG_KEYS = [
+  'session_provider',
+  'session_model',
+  'session_effort',
+] as const;
+
+/** 默认模型配置键联合类型。 */
+export type SessionModelConfigKey = (typeof SESSION_MODEL_CONFIG_KEYS)[number];
 
 /** 配置页的能力分组：工作区、查看会话、管理会话；按顺序拼接后等于 TOOL_NAMES。 */
 export const TOOL_GROUPS = {

@@ -19,6 +19,9 @@ const ALL_ON: ConfigFields = {
   workspace_rename: true,
   session_list: true,
   session_get: true,
+  session_provider: '',
+  session_model: '',
+  session_effort: '',
 };
 
 /** 构造表单与它读取的状态。 */
@@ -61,6 +64,37 @@ describe('配置页草稿', () => {
     expect(state().session_get.text).toBe('false');
     expect(state().dirty).toBe(true);
     expect(state().invalid).toBe(false);
+  });
+
+  it('默认模型的三个字段随草稿保存与放弃', async () => {
+    const { fake, form, state } = setup();
+    const actions = form.inject();
+    actions.edit('session_provider', 'deepseek');
+    actions.edit('session_model', 'deepseek-chat');
+    actions.edit('session_effort', 'high');
+    expect(state().session_provider.text).toBe('deepseek');
+    expect(state().session_model.text).toBe('deepseek-chat');
+    expect(state().session_effort.text).toBe('high');
+
+    await actions.save();
+    expect(fake.writes[0]).toEqual(
+      expect.arrayContaining([
+        { op: 'set', path: ['session_provider'], value: 'deepseek' },
+        { op: 'set', path: ['session_model'], value: 'deepseek-chat' },
+        { op: 'set', path: ['session_effort'], value: 'high' },
+      ]),
+    );
+    fake.publish({
+      value: {
+        ...ALL_ON,
+        session_provider: 'deepseek',
+        session_model: 'deepseek-chat',
+        session_effort: 'high',
+      },
+    });
+    actions.edit('session_model', 'other');
+    actions.discard();
+    expect(state().session_model.text).toBe('deepseek-chat');
   });
 });
 
