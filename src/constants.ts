@@ -1,4 +1,4 @@
-/** 共享常量：插件标识、十一个工具名、配置键与结果上限。 */
+/** 共享常量：插件标识、十一个工具名、能力分组、配置键与结果上限。 */
 
 /** 错误消息、日志与行 id 使用的插件标识。 */
 export const PLUGIN_LABEL = 'dsh-plugin-meta-tools';
@@ -36,6 +36,16 @@ export const TOOL_NAMES = [...WORKSPACE_TOOL_NAMES, ...SESSION_TOOL_NAMES] as co
 
 /** 工具名联合类型。 */
 export type ToolName = (typeof TOOL_NAMES)[number];
+
+/** 配置页的能力分组：工作区、查看会话、管理会话；按顺序拼接后等于 TOOL_NAMES。 */
+export const TOOL_GROUPS = {
+  workspace: WORKSPACE_TOOL_NAMES,
+  sessionRead: SESSION_READ_TOOL_NAMES,
+  sessionManage: [...SESSION_CONTROL_TOOL_NAMES, ...SESSION_NAVIGATION_TOOL_NAMES],
+} as const satisfies Record<string, readonly ToolName[]>;
+
+/** 能力分组键。 */
+export type ToolGroup = keyof typeof TOOL_GROUPS;
 
 /** 标题扫描上限；按标题查询时最多折叠的会话数。 */
 export const TITLE_SCAN_LIMIT = 200;

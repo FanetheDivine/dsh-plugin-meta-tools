@@ -5,6 +5,15 @@
 - Node.js 24.9 及以上，与 DSH 的运行要求一致；CI 使用 Node 24。
 - pnpm 11。
 
+## 安装
+
+```sh
+dsh plugin add dsh-plugin-meta-tools
+```
+
+- 也可以安装本地目录：`dsh plugin add <插件目录>`。
+- 本插件与 `@local/dsh-harness-tools` 注册同名工具，安装前先移除后者的插件行，原因见 [known-risks.md](./known-risks.md#同名工具冲突)。
+
 ## 本地加载
 
 1. 运行 `pnpm dev`，tsdown 监听 `src/` 并重建 `dist/index.mjs` 与 `dist/client.js`。
@@ -149,7 +158,7 @@ icon.svg                    # 插件图标
 src/
 ├── index.ts                # 打包入口：name、inject、apply、Config 与工具组接线
 ├── config.ts               # 十一个开关的 Config schema、默认值、严格校验与热重载读取
-├── constants.ts            # 插件标识、工具名与结果上限
+├── constants.ts            # 插件标识、工具名、能力分组与结果上限
 ├── types.ts                # 宿主类型再导出与工作区/会话服务契约
 ├── utils.ts                # 对象判断、时间格式化与数值夹取
 ├── workspace-tools.ts      # 四个工作区工具与渲染

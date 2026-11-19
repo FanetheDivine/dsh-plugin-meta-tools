@@ -47,9 +47,39 @@ DSH 插件是一个 npm 包。宿主按约定的入口加载宿主部分，按 `
 - 未知键与非布尔值抛错，插件加载失败。
 - 解析结果冻结后返回。
 
+### 配置键
+
+- 十一个配置键与工具名相同，类型为布尔，默认 `true`。
+- 全部字段标记 `.volatile()`：在“插件”页的行配置页保存后，插件不重启，工具按新开关注册或注销。
+- 手写配置示例：
+
+```yaml
+- id: dsh-plugin-meta-tools
+  name: dsh-plugin-meta-tools
+  config:
+    workspace_remove: false
+    session_archive: false
+```
+
 ### 工具组同步
 
 每个工具组持有自己的注册 disposer 列表。配置变化时先释放旧注册，再按新开关注册；服务卸载时释放整组。同名工具不会重复注册。
+
+## 工具一览
+
+| 工具 | 参数 | 返回 |
+| --- | --- | --- |
+| `workspace_list` | 无 | 工作区数量与逐项 id、标题、路径、状态、会话计数 |
+| `workspace_create` | `path`、`title?` | `created`、工作区视图与可选说明 |
+| `workspace_remove` | `workspace_id` | `removed`、被移除的 id 与路径 |
+| `workspace_rename` | `workspace_id`、`title` | 更新后的工作区视图 |
+| `session_list` | `workspace_id?`、`cwd?`、`query?`、`limit?`、`titles?`、`include_archived?` | 会话总数、本页摘要与可选说明 |
+| `session_get` | `session_id` | 临时目录、主会话文件、全部文件与 subagent 数 |
+| `session_create` | `workspace_id?`、`cwd?`、`agent_preset?`、`title?`、`prompt?` | 新会话 id、预设、标题与是否已投递首条消息 |
+| `session_stop` | `session_id` | `accepted` 与会话 id |
+| `session_send` | `session_id`、`text` | `delivered` 与会话 id |
+| `session_pin` | `session_id`、`remove?` | `pinned` 与会话 id |
+| `session_archive` | `session_id`、`remove?`、`stop_activity?` | `archived` 与会话 id |
 
 ## 工具行为
 
@@ -73,6 +103,14 @@ DSH 插件是一个 npm 包。宿主按约定的入口加载宿主部分，按 `
 - 日志序列化为规范 JSONL：会话头一行，其后每行一个事件。
 - 文件写入系统临时目录下的独立目录，返回主文件与全部路径；不写工作区。
 - 文件名与内容对齐宿主 `/export` 的日志产物，但不打包 ZIP，也不导出附件。
+
+目录结构：
+
+```text
+<系统临时目录>/dsh-plugin-meta-tools/session-logs/<session-id>-<时间戳>-<随机后缀>/
+├── session.jsonl 或 session.vN.jsonl
+└── subagents/<session-id>/session[.vN].jsonl
+```
 
 ### 会话操作
 
@@ -108,7 +146,9 @@ DSH 插件是一个 npm 包。宿主按约定的入口加载宿主部分，按 `
 - 元数据资源 `locale/*.json` 供宿主在插件未激活时读取标题与描述；两处的完整规范见 [i18n.md](./i18n.md)。
 - `plugins.row.config` 槽位的键是 `<包名>#<行 id>`，当前两者相同。
 - 表单由 `SettingsFormModel` 暂存十一个开关，`SettingsForm` 与 `Switch` 渲染，只在保存时写一次。
-- 每个开关只渲染一段标签，标签同时作为无障碍名称。
+- 开关按 `TOOL_GROUPS` 分为工作区、查看会话、管理会话三组，每组一个一级分组标题。
+- 每个开关行按工具名、功能名称、开关三列排列，说明位于功能名称下方；全部开关竖直对齐。
+- 功能名称同时作为开关的无障碍名称。
 - 控件使用 `--dsw-*` 主题令牌，随明暗主题与语言切换。
 
 ## 依赖复用

@@ -5,7 +5,7 @@
   "main": "./dist/index.mjs",
   "module": "./dist/index.mjs",
   "types": "./dist/index.d.ts",
-  "description": "Meta tools for workspaces and sessions, with per-tool switches in the plugin panel.",
+  "description": "Meta tools that let AI change its own environment: workspaces and sessions.",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/FanetheDivine/dsh-plugin-meta-tools.git"
@@ -20,6 +20,7 @@
     "deepseek",
     "harness",
     "plugin",
+    "meta-tools",
     "workspace",
     "session"
   ],

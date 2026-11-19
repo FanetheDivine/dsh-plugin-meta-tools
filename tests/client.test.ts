@@ -13,7 +13,7 @@ import { type ConfigFormState, ROW_ID, ROW_KEY } from '../src/client/config-form
 import { ConfigPage } from '../src/client/config-page.tsx';
 import { apply, inject } from '../src/client/index.ts';
 import { en, NS, zh } from '../src/client/locales.ts';
-import { TOOL_NAMES } from '../src/constants.ts';
+import { TOOL_GROUPS, TOOL_NAMES } from '../src/constants.ts';
 import { makeClientCtx } from './helpers.ts';
 
 /** 用字典与 `{name}` 模板参数构造翻译函数，行为与宿主 locale 座一致。 */
@@ -119,36 +119,75 @@ describe('字典', () => {
     }
   });
 
-  it('十一段标签按用户清单排列', () => {
+  it('十一个工具都有一句说明', () => {
+    for (const tool of TOOL_NAMES) {
+      expect((zh as Record<string, string>)[`config.${tool}.description`]).toBeTruthy();
+      expect((en as Record<string, string>)[`config.${tool}.description`]).toBeTruthy();
+    }
+  });
+
+  it('三个分组都有标题', () => {
+    for (const group of Object.keys(TOOL_GROUPS)) {
+      expect((zh as Record<string, string>)[`config.group.${group}`]).toBeTruthy();
+      expect((en as Record<string, string>)[`config.group.${group}`]).toBeTruthy();
+    }
+  });
+
+  it('十一段标签按能力清单排列', () => {
     const labels = TOOL_NAMES.map((tool) => (zh as Record<string, string>)[`config.${tool}.label`]);
     expect(labels).toEqual([
-      '获取工作区信息',
+      '查看工作区',
       '注册工作区',
-      '删除工作区',
+      '移除工作区',
       '重命名工作区',
-      '获取会话信息',
-      '获取会话日志',
+      '查找会话',
+      '读取会话日志',
       '新建会话',
       '停止会话',
-      '发送消息',
+      '向会话发消息',
       '置顶会话',
       '归档会话',
     ]);
+  });
+
+  it('移除工作区的说明写明目录与会话日志保留', () => {
+    expect(zh['config.workspace_remove.description']).toContain('目录与会话日志保留');
+  });
+});
+
+describe('能力分组', () => {
+  it('三组按顺序拼接后等于全部工具', () => {
+    expect(Object.keys(TOOL_GROUPS)).toEqual(['workspace', 'sessionRead', 'sessionManage']);
+    expect(Object.values(TOOL_GROUPS).flat()).toEqual([...TOOL_NAMES]);
   });
 });
 
 describe('配置页', () => {
   it('summary 渲染一行描述', () => {
-    expect(renderConfigPage('summary', zh)).toContain('选择向模型开放哪些工具');
-    expect(renderConfigPage('summary', en)).toContain('Choose which tools the model can call');
+    expect(renderConfigPage('summary', zh)).toBe(zh['config.summary']);
+    expect(renderConfigPage('summary', en)).toBe(en['config.summary']);
+    expect(zh['config.summary']).toContain('元工具');
+    expect(en['config.summary']).toContain('meta tools');
   });
 
-  it('page 渲染十一个开关、标签与保存按钮', () => {
+  it('page 按三组渲染十一个开关、标签、说明与保存按钮', () => {
     const html = renderConfigPage('page', zh);
-    for (const tool of TOOL_NAMES) {
-      expect(html).toContain(`data-dsh-meta-tools-config="${tool}"`);
-      expect(html).toContain((zh as Record<string, string>)[`config.${tool}.label`]);
+    const groups = [...html.matchAll(/data-dsh-meta-tools-group="(\w+)"/g)].map((m) => m[1]);
+    expect(groups).toEqual(Object.keys(TOOL_GROUPS));
+    for (const group of Object.keys(TOOL_GROUPS)) {
+      expect(html).toContain((zh as Record<string, string>)[`config.group.${group}`]);
     }
+    const rows = [...html.matchAll(/data-dsh-meta-tools-config="(\w+)"/g)].map((m) => m[1]);
+    expect(rows).toEqual([...TOOL_NAMES]);
+    for (const tool of TOOL_NAMES) {
+      const label = (zh as Record<string, string>)[`config.${tool}.label`];
+      expect(html).toContain(`>${tool}</code>`);
+      expect(html).toContain(label);
+      expect(html).toContain(`aria-label="${label}"`);
+      expect(html).toContain((zh as Record<string, string>)[`config.${tool}.description`]);
+    }
+    expect(html).toContain('<h3');
+    expect(html).toContain('grid-template-columns:minmax(120px, 180px) minmax(0, 240px) 36px');
     expect(html.match(/role="switch"/g)).toHaveLength(11);
     expect(html.match(/aria-checked="true"/g)).toHaveLength(11);
     expect(html).toContain('保存');
@@ -164,9 +203,10 @@ describe('配置页', () => {
 
   it('page 渲染英文文案', () => {
     const html = renderConfigPage('page', en);
-    expect(html).toContain('Get workspace info');
-    expect(html).toContain('Get session log');
-    expect(html).toContain('Archive a session');
+    expect(html).toContain('View workspaces');
+    expect(html).toContain('Read session logs');
+    expect(html).toContain('Archive sessions');
+    expect(html).toContain('Manage sessions');
     expect(html).toContain('Save');
   });
 

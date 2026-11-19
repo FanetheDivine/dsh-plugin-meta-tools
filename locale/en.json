@@ -1,6 +1,6 @@
 {
   "meta": {
-    "title": "Meta tools for the model",
-    "description": "Lets the agent operate workspaces and sessions"
+    "title": "Meta tools",
+    "description": "Meta tools that let AI change its own environment: manage workspaces; create, steer, pin, and archive sessions; read session logs."
   }
 }
