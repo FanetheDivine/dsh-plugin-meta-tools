@@ -28,7 +28,7 @@
 
 **⚠️ CRITICAL**: 先完成共享类型，再编写行为测试与实现
 
-- [ ] T002 在 `src/types.ts` 增加最小 `LlmLike.resolveCallConfig` 结构契约并提交本阶段；复用宿主 `ModelSelection`，不增加依赖
+- [X] T002 在 `src/types.ts` 增加最小 `LlmLike.resolveCallConfig` 结构契约并提交本阶段；复用宿主 `ModelSelection`，不增加依赖
 
 **Checkpoint**: session_create 可以接收可选 LLM 校验服务，现有运行行为不变
 

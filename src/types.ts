@@ -6,7 +6,7 @@
 import type { Context, Events, Volatile } from '@deepseek-ai/cordis';
 // Type-only：拉取 loader/volatile-update 事件声明。
 import type {} from '@deepseek-ai/cordis-plugin-loader';
-import type { Agent } from '@deepseek-ai/dsh-agent';
+import type { Agent, ModelSelection } from '@deepseek-ai/dsh-agent';
 import type { ToolDefinition, ToolRunContext } from '@deepseek-ai/dsh-tools';
 
 /** 插件配置类型。 */
@@ -178,6 +178,12 @@ export interface SessionQueryLike {
 export interface TextContentBlockLike {
   readonly type: 'text';
   readonly text: string;
+}
+
+/** 模型运行时中本插件用到的精确配置校验能力。 */
+export interface LlmLike {
+  /** 校验 provider/model 与可选 reasoning effort。 */
+  resolveCallConfig(config: Readonly<ModelSelection>, signal?: AbortSignal): Promise<unknown>;
 }
 
 /** 新建会话的请求。 */
