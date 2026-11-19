@@ -4,6 +4,10 @@
 
 ### Changed
 
+- 插件标题改为“元工具”与“Meta tools”，描述说明 AI 借此修改自身运行环境
+- 图标改为扳手加环绕箭头，无底板
+- README 改写为面向用户的说明；安装命令移入 `docs/development.md`，工具一览、配置键与日志目录移入 `docs/how-it-works.md`
+- 配置页按工作区、查看会话、管理会话分组，每个开关附一句说明
 - 两处消息投递改为 `Agent.steer` 插话，消息来源类型为 `dsh-plugin-meta-tools`，不再经会话 `prompt` 投递
 - `session_send` 固定为插话：删除 `mode` 参数、`mode` 返回字段与 subagent 投递回退
 

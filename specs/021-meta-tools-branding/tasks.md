@@ -68,9 +68,9 @@ description: "Task list for meta tools branding and user-facing docs"
 
 ## Phase 5: Polish & Cross-Cutting Concerns
 
-- [ ] T015 在 `CHANGELOG.md` 的 Unreleased 增加本次变更
-- [ ] T016 运行 `pnpm format && pnpm full-check`
-- [ ] T017 按 quickstart.md 在宿主“插件”页核对标题、描述、图标、详情页与配置页，覆盖中英文、明暗主题与 390 px
+- [X] T015 在 `CHANGELOG.md` 的 Unreleased 增加本次变更
+- [X] T016 运行 `pnpm format && pnpm full-check`
+- [X] T017 按 quickstart.md 在宿主“插件”页核对标题、描述、图标、详情页与配置页，覆盖中英文、明暗主题与 390 px
 
 ## Dependencies
 
