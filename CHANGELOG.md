@@ -13,4 +13,6 @@
 
 ### Added
 
+- `session_create` 支持 provider/model/effort，并可在插件配置页保存默认模型
+- 配置页复用官方模型与推理等级选择器，模型名前显示 provider，不显示团队协作配置项
 - `@deepseek-ai/dsh-llm` 依赖：用 `createUserMessage` 构造完整插话消息

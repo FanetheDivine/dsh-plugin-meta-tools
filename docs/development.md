@@ -96,6 +96,7 @@ dsh plugin add dsh-plugin-meta-tools
 | `tests/session-ops.test.ts` | 新建、停止、发送提醒、置顶与归档 |
 | `tests/contract.test.ts` | 十一个工具的名称、说明、参数与输出 schema |
 | `tests/config-form.test.ts` | 配置页草稿、保存、恢复默认与卸载 |
+| `tests/model-defaults.test.ts` | 默认模型目录、草稿选择、错误状态与卸载 |
 | `tests/client.test.ts` | 字典键集与空文案、配置页槽位注册与渲染 |
 | `tests/client-bundle.test.ts` | `dist/client.js` 的注册契约与导出（产物测试） |
 | `tests/package-pack.test.ts` | npm 包只含发布所需文件，含前端产物与元数据资源（产物测试） |

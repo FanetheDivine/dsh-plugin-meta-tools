@@ -2,13 +2,15 @@
  * 会话操作工具：session_create、session_stop、session_send、session_pin 与 session_archive。
  * 新建与解析走 sessionController，插件消息走 Agent.steer，置顶与归档走 workspaceRegistry。
  */
-import { createUserMessage } from '@deepseek-ai/dsh-llm';
+import { createUserMessage, ReasoningEffortId } from '@deepseek-ai/dsh-llm';
 import { defineTool, ToolArgsError } from '@deepseek-ai/dsh-tools';
 
 import { PLUGIN_LABEL } from './constants.ts';
 
 import type {
   Agent,
+  LlmLike,
+  ModelSelection,
   SessionControllerLike,
   SubagentsLike,
   TextContentBlockLike,
@@ -21,6 +23,10 @@ import type {
 export interface SessionControlDeps {
   /** 会话控制服务。 */
   sessionController: SessionControllerLike;
+  /** 模型配置校验服务；只在使用模型参数时必需。 */
+  llm?: LlmLike;
+  /** 插件保存的默认模型；工具显式参数优先。 */
+  defaultModel?: ModelSelection;
 }
 
 /** 会话导航工具依赖。 */
@@ -69,6 +75,28 @@ function messageOf(error: unknown): string {
   return error instanceof Error ? error.message : String(error);
 }
 
+/** 解析可选模型参数；provider 与 model 成对出现，effort 依赖完整路由。 */
+function modelSelectionOf(
+  providerInput: unknown,
+  modelInput: unknown,
+  effortInput: unknown,
+): ModelSelection | undefined {
+  const provider = typeof providerInput === 'string' ? providerInput.trim() : '';
+  const model = typeof modelInput === 'string' ? modelInput.trim() : '';
+  const effort = typeof effortInput === 'string' ? effortInput.trim() : '';
+  if (provider === '' && model === '' && effort === '') return undefined;
+  if (provider === '' || model === '') {
+    throw new ToolArgsError([
+      'provider and model must be provided together when provider, model, or effort is set',
+    ]);
+  }
+  return {
+    provider,
+    model,
+    ...(effort === '' ? {} : { reasoningEffort: ReasoningEffortId(effort) }),
+  };
+}
+
 /** 把文本包进 system-reminder 帧，并转义正文里的闭合标签。 */
 export function systemReminder(text: string): string {
   const escaped = text.trim().replaceAll('</system-reminder>', '<\\/system-reminder>');
@@ -111,11 +139,11 @@ function renderOne(verb: string, id: string): { type: 'text'; text: string }[] {
 
 /** 构建新建会话工具。 */
 export function buildSessionCreateTool(deps: SessionControlDeps): ToolDefinition {
-  const { sessionController } = deps;
+  const { sessionController, llm, defaultModel } = deps;
   return defineTool({
     name: 'session_create',
     description:
-      'Create a session, optionally in a workspace or directory, with an agent preset, a title, and a first prompt. Returns the new session id.',
+      'Create a session, optionally in a workspace or directory, with an agent preset, an optional provider/model/effort selection, a title, and a first prompt. Returns the new session id.',
     parameters: {
       workspace_id: {
         type: 'string',
@@ -129,6 +157,19 @@ export function buildSessionCreateTool(deps: SessionControlDeps): ToolDefinition
       agent_preset: {
         type: 'string',
         description: 'Agent preset the session runs. Defaults to the deployment default.',
+      },
+      provider: {
+        type: 'string',
+        description: 'Provider id. Required together with model when selecting a model.',
+      },
+      model: {
+        type: 'string',
+        description: 'Model id. Required together with provider when selecting a model.',
+      },
+      effort: {
+        type: 'string',
+        description:
+          'Reasoning effort id for the exact provider/model. Requires provider and model. Omit to use the model default.',
       },
       title: { type: 'string', description: 'Display title for the new session.' },
       prompt: {
@@ -155,6 +196,17 @@ export function buildSessionCreateTool(deps: SessionControlDeps): ToolDefinition
         throw new ToolArgsError(['workspace_id and cwd are mutually exclusive']);
       }
       const agentPreset = typeof args.agent_preset === 'string' ? args.agent_preset.trim() : '';
+      const selection = modelSelectionOf(args.provider, args.model, args.effort) ?? defaultModel;
+      if (selection !== undefined) {
+        if (llm === undefined) {
+          throw new Error('Model selection is unavailable: the llm service is not mounted.');
+        }
+        try {
+          await llm.resolveCallConfig(selection, exec.signal);
+        } catch (error) {
+          throw new Error(`Invalid model selection: ${messageOf(error)}`);
+        }
+      }
 
       const fallbackCwd = exec.agent?.session.header.cwd;
       const directory = cwd === '' ? (workspaceId === '' ? fallbackCwd : undefined) : cwd;
@@ -167,6 +219,20 @@ export function buildSessionCreateTool(deps: SessionControlDeps): ToolDefinition
         });
       } catch (error) {
         throw new Error(`Could not create the session: ${messageOf(error)}`);
+      }
+
+      if (selection !== undefined) {
+        try {
+          exec.signal.throwIfAborted();
+          const resolved = await sessionController.resolveAgent(created.sessionId);
+          exec.signal.throwIfAborted();
+          if ('error' in resolved) throw resolved.error;
+          resolved.agent.model.select(selection);
+        } catch (error) {
+          throw new Error(
+            `The session '${created.sessionId}' was created, but its model selection failed: ${messageOf(error)}`,
+          );
+        }
       }
 
       let title: string | undefined;

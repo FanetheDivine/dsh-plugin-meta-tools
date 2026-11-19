@@ -32,7 +32,7 @@ const DESCRIPTIONS: Record<string, string> = {
   session_get:
     'Export one session log to a temporary directory and return the written file paths. The export contains the main session and one log per subagent session. Each file is JSONL: a header line followed by one event per line. Read the returned files to inspect the session.',
   session_create:
-    'Create a session, optionally in a workspace or directory, with an agent preset, a title, and a first prompt. Returns the new session id.',
+    'Create a session, optionally in a workspace or directory, with an agent preset, an optional provider/model/effort selection, a title, and a first prompt. Returns the new session id.',
   session_stop: 'Cancel the current turn of one session without dropping its pending messages.',
   session_send:
     'Send one steering message to an ordinary session as a system reminder with source kind dsh-plugin-meta-tools. The text is wrapped in a <system-reminder> frame, and a closing tag inside the text is escaped. Running sessions receive it at the nearest step; idle sessions start a turn.',
@@ -119,6 +119,19 @@ describe('工具契约', () => {
     });
     expect(property(tools.session_get, 'session_id')).toMatchObject({ type: 'string' });
     expect(property(tools.session_create, 'cwd')).toMatchObject({ type: 'string' });
+    expect(property(tools.session_create, 'provider')).toMatchObject({
+      type: 'string',
+      description: 'Provider id. Required together with model when selecting a model.',
+    });
+    expect(property(tools.session_create, 'model')).toMatchObject({
+      type: 'string',
+      description: 'Model id. Required together with provider when selecting a model.',
+    });
+    expect(property(tools.session_create, 'effort')).toMatchObject({
+      type: 'string',
+      description:
+        'Reasoning effort id for the exact provider/model. Requires provider and model. Omit to use the model default.',
+    });
     expect(property(tools.session_send, 'mode')).toBeUndefined();
     expect(
       Object.keys(
@@ -134,7 +147,7 @@ describe('工具契约', () => {
   });
 
   it('说明与参数文案不含 profile', () => {
-    for (const [name, tool] of Object.entries(definitions())) {
+    for (const [_name, tool] of Object.entries(definitions())) {
       expect(tool.description.toLowerCase()).not.toContain('profile');
       const properties = (tool.parameters as { properties?: Record<string, unknown> }).properties;
       for (const parameter of Object.values(properties ?? {})) {

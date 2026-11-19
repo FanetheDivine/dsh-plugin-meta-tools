@@ -28,6 +28,7 @@ DSH 插件是一个 npm 包。宿主按约定的入口加载宿主部分，按 `
 - 需要热重载的 `Config` 字段用 `.volatile()` 标记。
 - 宿主类型经 `src/types.ts` 以 type-only 方式导入。
 - `workspaceRegistry`、`sessionQuery`、`sessionController`、`sessions` 是可选服务，经 `ctx.inject` 获取。缺少某个服务时，只跳过依赖它的工具，插件照常加载。
+- `llm` 是可选模型校验服务。缺少时不影响现有工具，只有指定模型的新建会话会报错。
 
 ## 运行流程
 
@@ -49,8 +50,9 @@ DSH 插件是一个 npm 包。宿主按约定的入口加载宿主部分，按 `
 
 ### 配置键
 
-- 十一个配置键与工具名相同，类型为布尔，默认 `true`。
-- 全部字段标记 `.volatile()`：在“插件”页的行配置页保存后，插件不重启，工具按新开关注册或注销。
+- 十一个工具开关键与工具名相同，类型为布尔，默认 `true`。
+- `session_provider`、`session_model`、`session_effort` 是新增会话的默认模型字符串，默认空字符串；provider 与 model 必须成对配置，effort 依赖完整路由。
+- 全部字段标记 `.volatile()`：在“插件”页的行配置页保存后，插件不重启，工具按新配置同步。
 - 手写配置示例：
 
 ```yaml
@@ -75,7 +77,7 @@ DSH 插件是一个 npm 包。宿主按约定的入口加载宿主部分，按 `
 | `workspace_rename` | `workspace_id`、`title` | 更新后的工作区视图 |
 | `session_list` | `workspace_id?`、`cwd?`、`query?`、`limit?`、`titles?`、`include_archived?` | 会话总数、本页摘要与可选说明 |
 | `session_get` | `session_id` | 临时目录、主会话文件、全部文件与 subagent 数 |
-| `session_create` | `workspace_id?`、`cwd?`、`agent_preset?`、`title?`、`prompt?` | 新会话 id、预设、标题与是否已投递首条消息 |
+| `session_create` | `workspace_id?`、`cwd?`、`agent_preset?`、`provider?`、`model?`、`effort?`、`title?`、`prompt?` | 新会话 id、预设、标题与是否已投递首条消息 |
 | `session_stop` | `session_id` | `accepted` 与会话 id |
 | `session_send` | `session_id`、`text` | `delivered` 与会话 id |
 | `session_pin` | `session_id`、`remove?` | `pinned` 与会话 id |
@@ -114,7 +116,8 @@ DSH 插件是一个 npm 包。宿主按约定的入口加载宿主部分，按 `
 
 ### 会话操作
 
-- `session_create` 调 `sessionController.create`；给出标题时再调 `rename`，给出首条消息时与 `session_send` 共用插件插话链路。
+- `session_create` 先校验显式 provider/model/effort 或插件默认模型，再调 `sessionController.create`；创建后经 `agent.model.select` 选择会话模型，最后设置标题并投递首条消息。
+- 显式工具参数覆盖插件默认模型。模型选择只写入新会话，不调用会保存宿主全局默认的 `sessionController.selectModel`。
 - `session_stop` 调 `sessionController.cancel`，只取消当前轮次。
 - 插件插话链路用 `createUserMessage` 构造完整消息，来源固定为 `{ kind: 'dsh-plugin-meta-tools' }`，再经 `sessionController.resolveAgent` 取得普通会话 Agent 并调用 `steer`。
 - `session_send` 先把文本包进 `<system-reminder>` 帧并转义正文里的闭合标签，再走同一插件插话链路。
@@ -145,8 +148,11 @@ DSH 插件是一个 npm 包。宿主按约定的入口加载宿主部分，按 `
 - 所有界面文案来自 `src/client/locales.ts`；中文字典是键集事实源，英文字典必须同键，组件只通过 `t(key)` 读取。
 - 元数据资源 `locale/*.json` 供宿主在插件未激活时读取标题与描述；两处的完整规范见 [i18n.md](./i18n.md)。
 - `plugins.row.config` 槽位的键是 `<包名>#<行 id>`，当前两者相同。
-- 表单由 `SettingsFormModel` 暂存十一个开关，`SettingsForm` 与 `Switch` 渲染，只在保存时写一次。
-- 开关按 `TOOL_GROUPS` 分为工作区、查看会话、管理会话三组，每组一个一级分组标题。
+- 表单由 `SettingsFormModel` 暂存十一个开关与三个默认模型字段，`SettingsForm` 与 `Switch` 渲染，只在保存时写一次。
+- 默认模型复用官方 `ModelSelect` 与 `ModelCatalogDirectory`；`ModelDefaults` 把目录、表单草稿与连接事件投影到同一个快照存储。
+- 模型标签通过选择器扩展点在名称前显示 provider，额外选项扩展点返回空内容，因此配置页不提供团队协作开关。
+- 官方 CSS Module 在构建时内联到 `dist/client.js`，运行时以固定 id 注入样式。
+- 开关按 `TOOL_GROUPS` 分为工作区、查看会话、管理会话三组；默认模型位于独立的“新增会话”分组。
 - 每个开关行按工具名、功能名称、开关三列排列，说明位于功能名称下方；全部开关竖直对齐。
 - 功能名称同时作为开关的无障碍名称。
 - 控件使用 `--dsw-*` 主题令牌，随明暗主题与语言切换。

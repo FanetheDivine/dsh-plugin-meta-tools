@@ -1,8 +1,14 @@
 // 配置测试：十一个开关的默认值、严格校验、冻结与实时读取。
 import { describe, expect, it } from 'vitest';
 
-import { Config, DEFAULT_CONFIG, readConfig, resolveConfig } from '../src/config.ts';
-import { PLUGIN_LABEL, TOOL_NAMES } from '../src/constants.ts';
+import {
+  Config,
+  DEFAULT_CONFIG,
+  readConfig,
+  resolveConfig,
+  sessionModelSelection,
+} from '../src/config.ts';
+import { PLUGIN_LABEL, SESSION_MODEL_CONFIG_KEYS, TOOL_NAMES } from '../src/constants.ts';
 import { volatile } from './helpers.ts';
 
 /** 十一个键的完整配置。 */
@@ -18,13 +24,16 @@ const ALL_ON = {
   session_send: true,
   session_pin: true,
   session_archive: true,
+  session_provider: '',
+  session_model: '',
+  session_effort: '',
 };
 
 describe('默认值', () => {
   it('十一个工具默认开启', () => {
     expect(resolveConfig({})).toEqual(ALL_ON);
     expect(DEFAULT_CONFIG).toEqual(ALL_ON);
-    expect(TOOL_NAMES).toEqual(Object.keys(ALL_ON));
+    expect([...TOOL_NAMES, ...SESSION_MODEL_CONFIG_KEYS]).toEqual(Object.keys(ALL_ON));
   });
 
   it('整份配置留空（undefined/null）时全部用默认值', () => {
@@ -56,6 +65,31 @@ describe('覆盖与空值', () => {
     expect(() => {
       (config as unknown as Record<string, boolean>).session_get = true;
     }).toThrow();
+  });
+});
+
+describe('默认模型', () => {
+  it('空配置返回 undefined', () => {
+    expect(sessionModelSelection(resolveConfig({}))).toBeUndefined();
+  });
+
+  it('读取完整配置并映射 reasoningEffort', () => {
+    const config = resolveConfig({
+      session_provider: ' deepseek ',
+      session_model: ' deepseek-chat ',
+      session_effort: ' high ',
+    });
+    expect(sessionModelSelection(config)).toEqual({
+      provider: 'deepseek',
+      model: 'deepseek-chat',
+      reasoningEffort: 'high',
+    });
+  });
+
+  it('非字符串、缺少配对或 effort 缺少路由时报错', () => {
+    expect(() => resolveConfig({ session_provider: true })).toThrow('must be a string');
+    expect(() => resolveConfig({ session_provider: 'deepseek' })).toThrow('must be set together');
+    expect(() => resolveConfig({ session_effort: 'high' })).toThrow('requires');
   });
 });
 

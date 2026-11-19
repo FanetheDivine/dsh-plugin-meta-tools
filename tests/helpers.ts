@@ -189,6 +189,8 @@ export interface ClientMockState {
   _configFormRequests: string[];
   /** `configForms.get` 返回过的表单。 */
   _configFormScopes: FakeConfigFormScope<Record<string, unknown>>[];
+  /** 订阅的远端事件。 */
+  _remoteEvents: string[];
   /** 客户端 ctx 模拟的槽位与字典注册，以及 effect 清理。 */
   _effectDisposers: Array<() => void>;
 }
@@ -205,6 +207,7 @@ export function makeClientCtx() {
     _effects: [],
     _configFormRequests: [],
     _configFormScopes: [],
+    _remoteEvents: [],
     _effectDisposers: [],
   };
   const noop = () => true;
@@ -215,10 +218,33 @@ export function makeClientCtx() {
       if (typeof disposer === 'function') state._effectDisposers.push(disposer as () => void);
       return typeof disposer === 'function' ? disposer : noop;
     },
+    on(_type: string, _fn: (...args: unknown[]) => unknown) {
+      return noop;
+    },
     locale: {
       register(ns: string, dicts: Record<string, Record<string, string>>) {
         state._localeRegistrations.push({ ns, dicts });
         return noop;
+      },
+      bind: (ns: string) => (key: string, params?: Record<string, unknown>) =>
+        `${ns}.${key}`.replace(/\{(\w+)\}/g, (_match, name) => String(params?.[name] ?? '')),
+      resolveText: (text: unknown) => (typeof text === 'string' ? text : String(text)),
+    },
+    remote: {
+      $on(event: string, _listener: (...args: unknown[]) => unknown) {
+        state._remoteEvents.push(event);
+        return noop;
+      },
+      session: {
+        modelCatalog: async () => ({
+          ok: true,
+          value: {
+            default: { provider: 'deepseek', model: 'deepseek-chat' },
+            routableProviders: [],
+            groups: [],
+            failures: [],
+          },
+        }),
       },
     },
     configForms: {
@@ -238,6 +264,9 @@ export function makeClientCtx() {
             session_send: true,
             session_pin: true,
             session_archive: true,
+            session_provider: '',
+            session_model: '',
+            session_effort: '',
           },
         });
         state._configFormScopes.push(fake);

@@ -13,9 +13,10 @@ import type {} from '@deepseek-ai/dsh-client-ui-settings/client';
 import { type ConfigFields, PluginConfigForm, ROW_ID, ROW_KEY } from './config-form.ts';
 import { ConfigPage } from './config-page.tsx';
 import { en, NS, zh } from './locales.ts';
+import { ModelDefaults } from './model-defaults.ts';
 
 /** 需要宿主注入的客户端服务。 */
-export const inject = ['slots', 'locale', 'configForms'];
+export const inject = ['slots', 'locale', 'configForms', 'remote', 'remote.session'];
 
 /** 插件在前端启用时调用：注册字典与面板配置页。 */
 export function apply(ctx: Context): void {
@@ -23,15 +24,27 @@ export function apply(ctx: Context): void {
 
   // 配置页：宿主为该行提供的表单命名空间是行 id
   const form = new PluginConfigForm(ctx.configForms.get<ConfigFields>(ROW_ID));
+  const injected = form.inject();
+  const models = new ModelDefaults(ctx, injected.hooks.configForm, injected.edit);
+  const modelT = ctx.locale.bind('model');
   ctx.effect(
     () => () => {
       form.dispose();
+      models.dispose();
     },
     'dsh-plugin-meta-tools: config form',
   );
   ctx.slots.inject('plugins.row.config', () =>
     ctx.slots.register(
-      { name: 'plugins.row.config', key: ROW_KEY, locale: NS, inject: () => form.inject() },
+      {
+        name: 'plugins.row.config',
+        key: ROW_KEY,
+        locale: NS,
+        inject: () => ({
+          ...injected,
+          modelDefaults: models.inject(modelT, (text) => ctx.locale.resolveText(text)),
+        }),
+      },
       ConfigPage,
     ),
   );

@@ -42,6 +42,7 @@ describe('前端产物（dist/client.js）', () => {
   it('按包名注册闭包工厂，导出 inject 与 apply', () => {
     assertFreshDist();
     const registrations = loadRegistrations();
+    expect(readFileSync(CLIENT_FILE, 'utf8')).toContain('data-dsh-meta-tools-model-selection');
     expect(registrations).toHaveLength(1);
     const registration = registrations[0];
     expect(registration?.id).toBe(CLIENT_ID);
@@ -83,17 +84,55 @@ describe('前端产物（dist/client.js）', () => {
       },
       SettingsForm: jsxStub,
       SettingsValueField: jsxStub,
+      settingsTextField: (field: string) => ({
+        field,
+        format: (value: unknown) => String(value ?? ''),
+        parse: (text: string) => ({ kind: 'set', value: text }),
+      }),
       Switch: jsxStub,
     };
     const exported = registration?.factory((id) => {
       if (id === 'react') return reactStub;
+      if (id === 'react-dom') return { createPortal: jsxStub };
+      if (id === '@deepseek-ai/dsh-client-store') {
+        return {
+          createSnapshotStore: (initial: Record<string, unknown>) => {
+            let snapshot = initial;
+            const listeners = new Set<() => void>();
+            const notify = () => {
+              for (const listener of listeners) listener();
+            };
+            return {
+              getSnapshot: () => snapshot,
+              subscribe: (listener: () => void) => {
+                listeners.add(listener);
+                return () => listeners.delete(listener);
+              },
+              update: (recipe: (draft: Record<string, unknown>) => void) => {
+                recipe(snapshot);
+                notify();
+              },
+              set: (next: Record<string, unknown>) => {
+                snapshot = next;
+                notify();
+              },
+            };
+          },
+        };
+      }
       if (id === '@deepseek-ai/dsh-client-ui-primitives') return primitivesStub;
       if (id === 'react/jsx-runtime') {
         return { Fragment: 'Fragment', jsx: jsxStub, jsxs: jsxStub };
       }
       throw new Error(`产物请求了平台种子之外的模块：${id}`);
     });
-    expect(exported?.inject).toEqual(['slots', 'locale', 'configForms']);
+    expect(exported?.inject).toEqual([
+      'slots',
+      'locale',
+      'configForms',
+      'remote',
+      'remote.session',
+    ]);
 
     if (exported === undefined) throw new Error('产物工厂没有返回导出对象');
     const ctx = makeClientCtx();

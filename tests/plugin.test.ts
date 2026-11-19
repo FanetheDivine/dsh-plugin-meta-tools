@@ -140,6 +140,86 @@ describe('apply 接线', () => {
     expect(String(warns[0]?.args[0])).toContain('session_get must be a boolean');
   });
 
+  it('session_create 通过 llm 校验并选择新会话模型', async () => {
+    const ctx = makeCtx();
+    const create = vi.fn(async () => ({ sessionId: 's-new' }));
+    const select = vi.fn(async () => {});
+    const steer = vi.fn();
+    const agent = { model: { select }, steer };
+    const resolveAgent = vi.fn(async (_sessionId: string) => ({ agent }));
+    const resolveCallConfig = vi.fn(async (config: unknown) => config);
+    ctx._setService('sessionController', { create, resolveAgent });
+    ctx._setService('llm', { resolveCallConfig });
+    apply(ctx, { session_stop: false, session_send: false });
+    const tool = ctx._registeredTools.find(
+      (tool) => tool.name === 'session_create',
+    ) as ToolDefinition;
+    const signal = new AbortController().signal;
+    const selection = { provider: 'p1', model: 'm1', reasoningEffort: 'high' };
+
+    await expect(
+      tool.execute({ provider: 'p1', model: 'm1', effort: 'high' }, { signal } as never),
+    ).resolves.toMatchObject({ sessionId: 's-new', prompted: false });
+    expect(resolveCallConfig).toHaveBeenCalledWith(selection, expect.anything());
+    expect(create).toHaveBeenCalledWith({});
+    expect(resolveAgent).toHaveBeenCalledWith('s-new');
+    expect(select).toHaveBeenCalledWith(selection);
+  });
+
+  it('无模型参数时 session_create 不需要 llm 服务', async () => {
+    const ctx = makeCtx();
+    const create = vi.fn(async () => ({ sessionId: 's-new' }));
+    ctx._setService('sessionController', { create });
+    apply(ctx, { session_stop: false, session_send: false });
+    const tool = ctx._registeredTools.find(
+      (tool) => tool.name === 'session_create',
+    ) as ToolDefinition;
+    const signal = new AbortController().signal;
+
+    await expect(tool.execute({}, { signal } as never)).resolves.toMatchObject({
+      sessionId: 's-new',
+      prompted: false,
+    });
+    expect(create).toHaveBeenCalledWith({});
+  });
+
+  it('默认模型配置热更新后用于下一次新建会话', async () => {
+    const ctx = makeCtx();
+    const create = vi.fn(async () => ({ sessionId: 's-new' }));
+    const select = vi.fn();
+    const agent = { model: { select }, steer: vi.fn() };
+    const resolveAgent = vi.fn(async () => ({ agent }));
+    const resolveCallConfig = vi.fn(async (config: unknown) => config);
+    ctx._setService('sessionController', { create, resolveAgent });
+    ctx._setService('llm', { resolveCallConfig });
+    const config = {
+      session_provider: volatile(''),
+      session_model: volatile(''),
+      session_effort: volatile(''),
+      session_stop: volatile(false),
+      session_send: volatile(false),
+    };
+    apply(ctx, config);
+
+    const first = ctx._activeTools.values().next().value as ToolDefinition;
+    await first.execute({}, { signal: new AbortController().signal } as never);
+    expect(select).not.toHaveBeenCalled();
+
+    config.session_provider.set('acme');
+    config.session_model.set('alpha');
+    config.session_effort.set('high');
+    ctx._emit('loader/volatile-update');
+    const updated = [...ctx._activeTools].find(
+      (tool) => tool.name === 'session_create',
+    ) as ToolDefinition;
+    await updated.execute({}, { signal: new AbortController().signal } as never);
+    expect(select).toHaveBeenCalledWith({
+      provider: 'acme',
+      model: 'alpha',
+      reasoningEffort: 'high',
+    });
+  });
+
   it('session_send 从注册到执行以插件来源插话', async () => {
     const ctx = makeCtx();
     const prompt = vi.fn(async () => ({ accepted: true as const }));
