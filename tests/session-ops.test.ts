@@ -191,7 +191,9 @@ describe('session_create', () => {
     expect(resolveAgent.mock.invocationCallOrder[0]).toBeLessThan(
       select.mock.invocationCallOrder[0] ?? 0,
     );
-    expect(select.mock.invocationCallOrder[0]).toBeLessThan(rename.mock.invocationCallOrder[0] ?? 0);
+    expect(select.mock.invocationCallOrder[0]).toBeLessThan(
+      rename.mock.invocationCallOrder[0] ?? 0,
+    );
     expect(rename.mock.invocationCallOrder[0]).toBeLessThan(steer.mock.invocationCallOrder[0] ?? 0);
   });
 

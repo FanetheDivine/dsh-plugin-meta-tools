@@ -56,9 +56,9 @@
 - [X] T018 [P] 更新 `README.md`，说明新增会话默认模型与单次覆盖
 - [X] T019 [P] 更新 `docs/how-it-works.md` 与 `docs/development.md` 的配置、工具、前端机制与测试地图
 - [X] T020 [P] 更新 `docs/known-risks.md` 与 `CHANGELOG.md` 的失败边界、内部接口风险与条目
-- [ ] T021 按 `specs/022-configure-session-model/quickstart.md` 运行 `pnpm format && pnpm check && pnpm full-check`
-- [ ] T022 按 `specs/022-configure-session-model/quickstart.md` 在真实 DSH 验证官方选择器、provider 前缀、无团队协作项、保存与新建会话默认值
-- [ ] T023 审查 `src/`、`tests/`、`docs/`、`README.md`、`CHANGELOG.md` 与构建配置的最终差异，提交本阶段
+- [X] T021 按 `specs/022-configure-session-model/quickstart.md` 运行 `pnpm format && pnpm check && pnpm full-check`
+- [X] T022 按 `specs/022-configure-session-model/quickstart.md` 在真实 DSH 验证官方选择器、provider 前缀、无团队协作项、保存与新建会话默认值
+- [X] T023 审查 `src/`、`tests/`、`docs/`、`README.md`、`CHANGELOG.md` 与构建配置的最终差异，提交本阶段
 
 ## Dependencies & Execution Order
 
