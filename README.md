@@ -1,5 +1,7 @@
 # 元工具
 
+[![npm](https://img.shields.io/npm/v/dsh-plugin-meta-tools?logo=npm&label=npm)](https://www.npmjs.com/package/dsh-plugin-meta-tools)
+
 元工具让 AI 修改自身的运行环境。
 
 普通工具作用于你的项目，例如读写文件、运行命令。元工具作用于 AI 所在的 DSH：它能整理工作区、开启新会话、指挥其他会话，并回顾会话记录。
