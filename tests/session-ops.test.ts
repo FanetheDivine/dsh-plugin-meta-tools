@@ -259,10 +259,7 @@ describe('session_send', () => {
     const tool = buildSessionSendTool({ sessionController: controller });
 
     await expect(
-      tool.execute(
-        { session_id: 's1', text: 'reminder' },
-        { signal: aborter.signal } as never,
-      ),
+      tool.execute({ session_id: 's1', text: 'reminder' }, { signal: aborter.signal } as never),
     ).rejects.toThrow(/aborted/i);
     expect(resolveAgent).not.toHaveBeenCalled();
     expect(steer).not.toHaveBeenCalled();
@@ -279,10 +276,7 @@ describe('session_send', () => {
     const tool = buildSessionSendTool({ sessionController: controller });
 
     await expect(
-      tool.execute(
-        { session_id: 's1', text: 'reminder' },
-        { signal: aborter.signal } as never,
-      ),
+      tool.execute({ session_id: 's1', text: 'reminder' }, { signal: aborter.signal } as never),
     ).rejects.toThrow(/aborted/i);
     expect(steer).not.toHaveBeenCalled();
     expect(prompt).not.toHaveBeenCalled();
@@ -298,9 +292,9 @@ describe('session_send', () => {
     const tool = buildSessionSendTool({ sessionController: controller });
     const execution = execWithSubagents(subagents);
 
-    await expect(
-      tool.execute({ session_id: 's1', text: 'reminder' }, execution),
-    ).rejects.toThrow("Could not deliver the reminder to session 's1':");
+    await expect(tool.execute({ session_id: 's1', text: 'reminder' }, execution)).rejects.toThrow(
+      "Could not deliver the reminder to session 's1':",
+    );
     expect(sendMessage).not.toHaveBeenCalled();
     expect(steer).not.toHaveBeenCalled();
     expect(prompt).not.toHaveBeenCalled();

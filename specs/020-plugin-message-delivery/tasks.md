@@ -73,11 +73,11 @@ description: "Task list for plugin message delivery constraints"
 
 **Purpose**: 同步用户文档、机制说明和发布验证。
 
-- [ ] T008 [P] 更新 `README.md` 的 `session_send` 参数与返回、两处插件来源插话说明及 subagent 目标限制
-- [ ] T009 [P] 更新 `docs/how-it-works.md` 的会话操作机制，记录 `createUserMessage`、`resolveAgent`、`steer`、来源和取消检查
-- [ ] T010 运行 `pnpm format && pnpm check`，修复 `src/`、`tests/`、`README.md` 与 `docs/how-it-works.md` 的格式、类型、lint 或测试问题
-- [ ] T011 运行 `pnpm full-check` 并按 `specs/020-plugin-message-delivery/quickstart.md` 验证真实 DSH 宿主的消息来源与插话行为
-- [ ] T012 审查 `src/`、`tests/`、`package.json`、`pnpm-workspace.yaml` 与文档最终差异，确认无 `sessionController.prompt` 投递和 `session_send.mode` 残留
+- [X] T008 [P] 更新 `README.md` 的 `session_send` 参数与返回、两处插件来源插话说明及 subagent 目标限制
+- [X] T009 [P] 更新 `docs/how-it-works.md` 的会话操作机制，记录 `createUserMessage`、`resolveAgent`、`steer`、来源和取消检查
+- [X] T010 运行 `pnpm format && pnpm check`，修复 `src/`、`tests/`、`README.md` 与 `docs/how-it-works.md` 的格式、类型、lint 或测试问题
+- [X] T011 运行 `pnpm full-check` 并按 `specs/020-plugin-message-delivery/quickstart.md` 验证真实 DSH 宿主的消息来源与插话行为
+- [X] T012 审查 `src/`、`tests/`、`package.json`、`pnpm-workspace.yaml` 与文档最终差异，确认无 `sessionController.prompt` 投递和 `session_send.mode` 残留
 
 ---
 

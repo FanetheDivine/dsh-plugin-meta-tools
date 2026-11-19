@@ -51,9 +51,11 @@ dsh plugin add dsh-plugin-meta-tools
 | `session_get` | `session_id` | 临时目录、主会话文件、全部文件与 subagent 数 |
 | `session_create` | `workspace_id?`、`cwd?`、`agent_preset?`、`title?`、`prompt?` | 新会话 id、预设、标题与是否已投递首条消息 |
 | `session_stop` | `session_id` | `accepted` 与会话 id |
-| `session_send` | `session_id`、`text`、`mode?` | `delivered`、会话 id 与投递模式 |
+| `session_send` | `session_id`、`text` | `delivered` 与会话 id |
 | `session_pin` | `session_id`、`remove?` | `pinned` 与会话 id |
 | `session_archive` | `session_id`、`remove?`、`stop_activity?` | `archived` 与会话 id |
+
+`session_create` 的首条消息与 `session_send` 均以来源类型 `dsh-plugin-meta-tools` 插话。空闲会话开始新轮次，运行中会话在最近步骤接收。`session_send` 仅接受普通会话；subagent 会话返回宿主归属错误。
 
 `session_list` 的 `query` 对折叠标题做大小写不敏感的子串匹配。列表省略调用方会话；subagent 会话归并到主会话。标题查询最多折叠 200 个会话的标题，超过时结果附说明。
 

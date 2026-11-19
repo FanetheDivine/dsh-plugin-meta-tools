@@ -15,6 +15,8 @@
 
 | 字段 | 值 |
 | --- | --- |
+| `id` | 宿主消息工厂生成的稳定字符串 id |
+| `role` | `user` |
 | `content` | 一个包含 system-reminder 的文本块 |
 | `source.kind` | `dsh-plugin-meta-tools` |
 
