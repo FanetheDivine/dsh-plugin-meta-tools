@@ -72,6 +72,13 @@ description: "Task list for meta tools branding and user-facing docs"
 - [X] T016 运行 `pnpm format && pnpm full-check`
 - [X] T017 按 quickstart.md 在宿主“插件”页核对标题、描述、图标、详情页与配置页，覆盖中英文、明暗主题与 390 px
 
+## Phase 6: 配置页视觉反馈
+
+- [X] T018 [US3] 在 `tests/client.test.ts` 覆盖工具名、一级分组标题与固定三列布局
+- [X] T019 [US3] 在 `src/client/config-page.tsx` 放大分组标题与行文字，按工具名、功能名、开关三列排列，说明位于功能名下方
+- [X] T020 更新 `specs/021-meta-tools-branding/contracts/config-page.md`、`docs/how-it-works.md` 与 `CHANGELOG.md`，运行 `pnpm format && pnpm full-check`
+- [X] T021 更新隔离预览实例，核对宽屏、390 px、中英文与开关对齐
+
 ## Dependencies
 
 - Phase 1 先行。

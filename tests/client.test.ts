@@ -181,10 +181,13 @@ describe('配置页', () => {
     expect(rows).toEqual([...TOOL_NAMES]);
     for (const tool of TOOL_NAMES) {
       const label = (zh as Record<string, string>)[`config.${tool}.label`];
+      expect(html).toContain(`>${tool}</code>`);
       expect(html).toContain(label);
       expect(html).toContain(`aria-label="${label}"`);
       expect(html).toContain((zh as Record<string, string>)[`config.${tool}.description`]);
     }
+    expect(html).toContain('<h3');
+    expect(html).toContain('grid-template-columns:minmax(120px, 180px) minmax(0, 240px) 36px');
     expect(html.match(/role="switch"/g)).toHaveLength(11);
     expect(html.match(/aria-checked="true"/g)).toHaveLength(11);
     expect(html).toContain('保存');

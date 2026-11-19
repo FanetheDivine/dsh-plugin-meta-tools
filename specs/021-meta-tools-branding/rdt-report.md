@@ -3,8 +3,8 @@
 ## 环境
 
 - 宿主版本：0.2.2-rc.3
-- profile：`rdt-021-meta-tools-branding`
-- 浏览器：本机 Chrome，Playwright 无头模式
+- profile：`rdt-021-meta-tools-branding`、`rdt-021-layout-fixed`
+- 浏览器：本机 Chrome，Playwright 无头模式与可视浏览器
 - 范围：标题、描述、图标、README 详情页、配置页与开关保存
 
 ## 后端用例
@@ -23,6 +23,9 @@
 | 英文暗色配置页 | PASS | 三组、十一行，英文标签与说明完整 |
 | 390 px 配置页 | PASS | 三组、十一行，说明换行，无横向溢出 |
 | 开关保存 | PASS | 关闭“移除工作区”后 `aria-checked` 为 `false`，宿主配置写入 `workspace_remove: false`，保存按钮恢复禁用；随后恢复开启 |
+| 中文宽屏三列布局 | PASS | 分组标题 16px，十一项工具名完整，十一个开关横坐标均为 788px |
+| 英文暗色三列布局 | PASS | 三组、十一行，十一个开关横坐标均为 788px |
+| 390 px 三列布局 | PASS | 三组、十一行，十一个开关横坐标均为 334px，无横向溢出 |
 
 ## 发现的问题
 

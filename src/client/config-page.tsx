@@ -74,16 +74,14 @@ export function ConfigPage(props: ConfigPageProps) {
     >
       {GROUPS.map((group) => (
         <section key={group} data-dsh-meta-tools-group={group} style={groupStyle}>
-          <h4 style={groupTitleStyle}>{t(GROUP_TITLE[group])}</h4>
+          <h3 style={groupTitleStyle}>{t(GROUP_TITLE[group])}</h3>
           {TOOL_GROUPS[group].map((tool) => {
             const [labelKey, descriptionKey] = TOOL_TEXT[tool];
             const label = t(labelKey);
             return (
               <div key={tool} data-dsh-meta-tools-config={tool} style={rowStyle}>
-                <div style={textStyle}>
-                  <span style={labelStyle}>{label}</span>
-                  <p style={descriptionStyle}>{t(descriptionKey)}</p>
-                </div>
+                <code style={toolNameStyle}>{tool}</code>
+                <span style={labelStyle}>{label}</span>
                 <Switch
                   checked={state[tool].text === 'true'}
                   disabled={disabled}
@@ -92,6 +90,7 @@ export function ConfigPage(props: ConfigPageProps) {
                     props.edit(tool, next ? 'true' : 'false');
                   }}
                 />
+                <p style={descriptionStyle}>{t(descriptionKey)}</p>
               </div>
             );
           })}
@@ -106,44 +105,51 @@ const groupStyle: CSSProperties = {
   marginBottom: 8,
 };
 
-/** 分组标题：12px、半粗、次级文字色。 */
+/** 分组标题：一级分组使用 16px 半粗主文字色。 */
 const groupTitleStyle: CSSProperties = {
-  margin: '16px 0 4px',
-  fontSize: 12,
+  margin: '20px 0 8px',
+  fontSize: 16,
   fontWeight: 600,
+  lineHeight: 1.5,
+  color: 'var(--dsw-alias-label-primary)',
+};
+
+/** 开关行：工具名、功能名与开关固定成三列，全部开关竖直对齐。 */
+const rowStyle: CSSProperties = {
+  display: 'grid',
+  gridTemplateColumns: 'minmax(120px, 180px) minmax(0, 240px) 36px',
+  alignItems: 'center',
+  columnGap: 20,
+  width: '100%',
+  maxWidth: 620,
+  padding: '14px 0',
+  borderTop: '0.5px solid var(--dsw-alias-border-l2)',
+};
+
+/** 工具名：等宽 14px，与功能名区分。 */
+const toolNameStyle: CSSProperties = {
+  minWidth: 0,
+  overflowWrap: 'anywhere',
+  fontSize: 14,
   lineHeight: 1.5,
   color: 'var(--dsw-alias-label-secondary)',
 };
 
-/** 开关行：标签与说明在左，开关在右，行间以分隔线隔开。 */
-const rowStyle: CSSProperties = {
-  display: 'flex',
-  alignItems: 'center',
-  justifyContent: 'space-between',
-  gap: 24,
-  padding: '12px 0',
-  borderTop: '0.5px solid var(--dsw-alias-border-l2)',
-};
-
-/** 文字列：允许收缩，说明自动换行。 */
-const textStyle: CSSProperties = {
-  display: 'flex',
-  flexDirection: 'column',
-  gap: 2,
-  minWidth: 0,
-};
-
-/** 单行标签：13px、中等字重。 */
+/** 功能名：14px、中等字重。 */
 const labelStyle: CSSProperties = {
-  fontSize: 13,
+  minWidth: 0,
+  fontSize: 14,
   fontWeight: 500,
   lineHeight: 1.5,
   color: 'var(--dsw-alias-label-primary)',
 };
 
-/** 开关说明：12px、次级文字色。 */
+/** 开关说明：位于功能名下方，窄屏自动换行。 */
 const descriptionStyle: CSSProperties = {
-  margin: 0,
+  gridColumn: '2 / 4',
+  minWidth: 0,
+  overflowWrap: 'anywhere',
+  margin: '2px 0 0',
   fontSize: 12,
   lineHeight: '18px',
   color: 'var(--dsw-alias-label-secondary)',

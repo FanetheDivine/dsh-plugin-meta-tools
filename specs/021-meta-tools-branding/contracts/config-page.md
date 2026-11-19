@@ -5,7 +5,9 @@
 - `summary` 视图返回 `config.summary` 的一行文案。
 - `page` 视图在 `SettingsForm` 内按分组顺序渲染三段：
   - 每段一个分组标题，带 `data-dsh-meta-tools-group="<分组键>"`。
-  - 每个工具一行，带 `data-dsh-meta-tools-config="<tool>"`，含标签、说明与 `Switch`。
+  - 每个工具一行，带 `data-dsh-meta-tools-config="<tool>"`，含工具名、标签、说明与 `Switch`。
+  - 行内三列依次为工具名、功能名称、开关；说明位于功能名称下方。全部开关使用同一列。
+- 分组标题使用一级分组视觉层级。
 - `Switch` 的 `label` 等于该工具的标签。
 - 只读或保存中时全部开关禁用。
 
