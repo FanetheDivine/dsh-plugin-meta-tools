@@ -1,4 +1,5 @@
 // 会话操作测试：新建、停止、发送提醒、置顶与归档。
+import { ReasoningEffortId } from '@deepseek-ai/dsh-llm';
 import { describe, expect, it, vi } from 'vitest';
 import {
   buildSessionArchiveTool,
@@ -10,6 +11,7 @@ import {
 } from '../src/session-ops.ts';
 import type {
   Agent,
+  LlmLike,
   SessionAgentResultLike,
   SessionControllerLike,
   SessionCreateRequestLike,
@@ -29,19 +31,45 @@ function makeController() {
   }));
   const prompt = vi.fn();
   const steer = vi.fn();
-  const agent = { steer } as unknown as Agent;
+  const select = vi.fn();
+  const selectModel = vi.fn();
+  const agent = { steer, model: { select } } as unknown as Agent;
   const resolveAgent = vi.fn(
     async (_sessionId: string): Promise<SessionAgentResultLike> => ({ agent }),
   );
   const cancel = vi.fn((_request: { sessionId: string }) => ({ accepted: true as const }));
-  const controller: SessionControllerLike & { prompt: typeof prompt } = {
+  const controller = {
     create,
     rename,
     prompt,
     resolveAgent,
     cancel,
+    selectModel,
+  } as unknown as SessionControllerLike & {
+    prompt: typeof prompt;
+    selectModel: typeof selectModel;
   };
-  return { controller, create, rename, prompt, resolveAgent, steer, agent, cancel };
+  return {
+    controller,
+    create,
+    rename,
+    prompt,
+    resolveAgent,
+    steer,
+    select,
+    agent,
+    cancel,
+    selectModel,
+  };
+}
+
+/** 假模型运行时。 */
+function makeLlm() {
+  const resolveCallConfig = vi.fn(
+    async (config: Parameters<LlmLike['resolveCallConfig']>[0]) => config,
+  );
+  const llm: LlmLike = { resolveCallConfig };
+  return { llm, resolveCallConfig };
 }
 
 /** 假工作区注册表。 */
@@ -120,6 +148,217 @@ describe('session_create', () => {
       title: '新会话',
       prompted: true,
     });
+  });
+
+  it('完整模型选择先校验再创建，并在标题和首条消息前选择会话模型', async () => {
+    const { controller, create, rename, resolveAgent, steer, select, selectModel } =
+      makeController();
+    const { llm, resolveCallConfig } = makeLlm();
+    const tool = buildSessionCreateTool({ sessionController: controller, llm });
+
+    await tool.execute(
+      {
+        provider: ' acme ',
+        model: ' alpha ',
+        effort: ' high ',
+        title: '模型会话',
+        prompt: 'hello',
+      },
+      exec,
+    );
+
+    expect(resolveCallConfig.mock.calls[0]?.[0]).toStrictEqual({
+      provider: 'acme',
+      model: 'alpha',
+      reasoningEffort: 'high',
+    });
+    expect(create).toHaveBeenCalledWith({});
+    expect(resolveAgent).toHaveBeenCalledWith('session-new');
+    expect(select).toHaveBeenCalledWith({
+      provider: 'acme',
+      model: 'alpha',
+      reasoningEffort: 'high',
+    });
+    expect(rename).toHaveBeenCalledWith({ sessionId: 'session-new', title: '模型会话' });
+    expect(steer).toHaveBeenCalledOnce();
+    expect(selectModel).not.toHaveBeenCalled();
+    expect(resolveCallConfig.mock.invocationCallOrder[0]).toBeLessThan(
+      create.mock.invocationCallOrder[0] ?? 0,
+    );
+    expect(create.mock.invocationCallOrder[0]).toBeLessThan(
+      resolveAgent.mock.invocationCallOrder[0] ?? 0,
+    );
+    expect(resolveAgent.mock.invocationCallOrder[0]).toBeLessThan(
+      select.mock.invocationCallOrder[0] ?? 0,
+    );
+    expect(select.mock.invocationCallOrder[0]).toBeLessThan(rename.mock.invocationCallOrder[0] ?? 0);
+    expect(rename.mock.invocationCallOrder[0]).toBeLessThan(steer.mock.invocationCallOrder[0] ?? 0);
+  });
+
+  it('省略 effort 时不传 reasoningEffort', async () => {
+    const { controller, select, selectModel } = makeController();
+    const { llm, resolveCallConfig } = makeLlm();
+    const tool = buildSessionCreateTool({ sessionController: controller, llm });
+
+    await tool.execute({ provider: 'acme', model: 'alpha' }, exec);
+
+    expect(resolveCallConfig.mock.calls[0]?.[0]).toStrictEqual({
+      provider: 'acme',
+      model: 'alpha',
+    });
+    expect(select.mock.calls[0]?.[0]).toStrictEqual({ provider: 'acme', model: 'alpha' });
+    expect(select.mock.calls[0]?.[0]).not.toHaveProperty('reasoningEffort');
+    expect(selectModel).not.toHaveBeenCalled();
+  });
+
+  it('省略工具参数时使用插件默认模型', async () => {
+    const { controller, select } = makeController();
+    const { llm, resolveCallConfig } = makeLlm();
+    const tool = buildSessionCreateTool({
+      sessionController: controller,
+      llm,
+      defaultModel: {
+        provider: 'acme',
+        model: 'alpha',
+        reasoningEffort: ReasoningEffortId('high'),
+      },
+    });
+
+    await tool.execute({}, exec);
+
+    expect(resolveCallConfig.mock.calls[0]?.[0]).toEqual({
+      provider: 'acme',
+      model: 'alpha',
+      reasoningEffort: 'high',
+    });
+    expect(select).toHaveBeenCalledWith({
+      provider: 'acme',
+      model: 'alpha',
+      reasoningEffort: 'high',
+    });
+  });
+
+  it('显式工具参数覆盖插件默认模型且不与默认 effort 合并', async () => {
+    const { controller, select } = makeController();
+    const { llm } = makeLlm();
+    const tool = buildSessionCreateTool({
+      sessionController: controller,
+      llm,
+      defaultModel: {
+        provider: 'acme',
+        model: 'alpha',
+        reasoningEffort: ReasoningEffortId('high'),
+      },
+    });
+
+    await tool.execute({ provider: 'other', model: 'beta' }, exec);
+
+    expect(select).toHaveBeenCalledWith({ provider: 'other', model: 'beta' });
+    expect(select.mock.calls[0]?.[0]).not.toHaveProperty('reasoningEffort');
+  });
+
+  it.each([
+    { label: '省略参数', args: {} },
+    {
+      label: '空白参数',
+      args: { provider: ' \t', model: '\n', effort: ' ' },
+    },
+  ])('未提供有效模型参数时保持默认流程：$label', async ({ args }) => {
+    const { controller, resolveAgent, steer, select, selectModel } = makeController();
+    const { llm, resolveCallConfig } = makeLlm();
+    resolveAgent.mockResolvedValueOnce({ agent: { steer } as unknown as Agent });
+    const tool = buildSessionCreateTool({ sessionController: controller, llm });
+
+    await expect(tool.execute({ ...args, prompt: 'hello' }, exec)).resolves.toMatchObject({
+      prompted: true,
+    });
+    expect(resolveCallConfig).not.toHaveBeenCalled();
+    expect(select).not.toHaveBeenCalled();
+    expect(selectModel).not.toHaveBeenCalled();
+    expect(steer).toHaveBeenCalledOnce();
+  });
+
+  it.each([
+    { label: '只有 provider', args: { provider: 'acme' } },
+    { label: '只有 model', args: { model: 'alpha' } },
+    { label: '只有 effort', args: { effort: 'high' } },
+    { label: '缺少 model', args: { provider: 'acme', effort: 'high' } },
+    { label: '缺少 provider', args: { model: 'alpha', effort: 'high' } },
+  ])('不完整模型组合在创建前报错：$label', async ({ args }) => {
+    const { controller, create, rename, resolveAgent, steer } = makeController();
+    const { llm, resolveCallConfig } = makeLlm();
+    const tool = buildSessionCreateTool({ sessionController: controller, llm });
+
+    await expect(tool.execute(args, exec)).rejects.toThrow();
+    expect(resolveCallConfig).not.toHaveBeenCalled();
+    expect(create).not.toHaveBeenCalled();
+    expect(resolveAgent).not.toHaveBeenCalled();
+    expect(rename).not.toHaveBeenCalled();
+    expect(steer).not.toHaveBeenCalled();
+  });
+
+  it('模型校验服务缺失时不创建会话', async () => {
+    const { controller, create, resolveAgent, rename, steer } = makeController();
+    const tool = buildSessionCreateTool({ sessionController: controller, llm: undefined });
+
+    await expect(tool.execute({ provider: 'acme', model: 'alpha' }, exec)).rejects.toThrow();
+    expect(create).not.toHaveBeenCalled();
+    expect(resolveAgent).not.toHaveBeenCalled();
+    expect(rename).not.toHaveBeenCalled();
+    expect(steer).not.toHaveBeenCalled();
+  });
+
+  it('模型校验失败时不创建会话', async () => {
+    const { controller, create, resolveAgent, rename, steer } = makeController();
+    const { llm, resolveCallConfig } = makeLlm();
+    resolveCallConfig.mockRejectedValueOnce(new Error('unsupported route'));
+    const tool = buildSessionCreateTool({ sessionController: controller, llm });
+
+    await expect(
+      tool.execute({ provider: 'acme', model: 'alpha', effort: 'high' }, exec),
+    ).rejects.toThrow('unsupported route');
+    expect(create).not.toHaveBeenCalled();
+    expect(resolveAgent).not.toHaveBeenCalled();
+    expect(rename).not.toHaveBeenCalled();
+    expect(steer).not.toHaveBeenCalled();
+  });
+
+  it('创建后解析 Agent 失败时报告会话 id 并停止后续操作', async () => {
+    const { controller, create, resolveAgent, select, rename, steer } = makeController();
+    const { llm } = makeLlm();
+    resolveAgent.mockResolvedValueOnce({ error: new Error('agent unavailable') });
+    const tool = buildSessionCreateTool({ sessionController: controller, llm });
+
+    await expect(
+      tool.execute(
+        { provider: 'acme', model: 'alpha', title: '不会设置', prompt: '不会发送' },
+        exec,
+      ),
+    ).rejects.toThrow(/session-new.*agent unavailable/);
+    expect(create).toHaveBeenCalledOnce();
+    expect(select).not.toHaveBeenCalled();
+    expect(rename).not.toHaveBeenCalled();
+    expect(steer).not.toHaveBeenCalled();
+  });
+
+  it('创建后选择模型失败时报告会话 id 并停止后续操作', async () => {
+    const { controller, create, resolveAgent, select, rename, steer } = makeController();
+    const { llm } = makeLlm();
+    select.mockImplementationOnce(() => {
+      throw new Error('selection failed');
+    });
+    const tool = buildSessionCreateTool({ sessionController: controller, llm });
+
+    await expect(
+      tool.execute(
+        { provider: 'acme', model: 'alpha', title: '不会设置', prompt: '不会发送' },
+        exec,
+      ),
+    ).rejects.toThrow(/session-new.*selection failed/);
+    expect(create).toHaveBeenCalledOnce();
+    expect(resolveAgent).toHaveBeenCalledWith('session-new');
+    expect(rename).not.toHaveBeenCalled();
+    expect(steer).not.toHaveBeenCalled();
   });
 
   it('已取消调用不解析或投递首条消息', async () => {

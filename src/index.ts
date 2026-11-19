@@ -2,7 +2,7 @@
  * 插件入口。导出宿主约定的 name、inject、apply 与 Config。
  * apply 读取配置、按可用服务建立四个工具组，并在配置热重载时重建注册。
  */
-import { type PluginConfig, readConfig } from './config.ts';
+import { type PluginConfig, readConfig, sessionModelSelection } from './config.ts';
 import { PLUGIN_LABEL, TOOL_NAMES, type ToolName, WORKSPACE_TOOL_NAMES } from './constants.ts';
 import { buildSessionLogTool } from './session-log.ts';
 import {
@@ -15,6 +15,7 @@ import {
 import { buildSessionTool } from './session-tools.ts';
 import type {
   Context,
+  LlmLike,
   SessionControllerLike,
   SessionQueryLike,
   WorkspaceRegistryLike,
@@ -109,12 +110,22 @@ export function apply(ctx: Context, config?: unknown): void {
   ctx.inject(['sessionController'], (scoped) => {
     const sessionController = scoped.get('sessionController') as SessionControllerLike | undefined;
     if (sessionController === undefined) return;
+    const llm = scoped.get('llm') as LlmLike | undefined;
     const disposers: Array<() => void> = [];
     /** 释放旧注册并按当前开关注册会话控制工具。 */
     const sync = (): void => {
       for (const dispose of disposers.splice(0)) dispose();
       if (current.session_create) {
-        disposers.push(scoped.tools.register(buildSessionCreateTool({ sessionController })));
+        const defaultModel = sessionModelSelection(current);
+        disposers.push(
+          scoped.tools.register(
+            buildSessionCreateTool({
+              sessionController,
+              ...(llm === undefined ? {} : { llm }),
+              ...(defaultModel === undefined ? {} : { defaultModel }),
+            }),
+          ),
+        );
       }
       if (current.session_stop) {
         disposers.push(scoped.tools.register(buildSessionStopTool({ sessionController })));

@@ -13,7 +13,7 @@ import type { ToolDefinition, ToolRunContext } from '@deepseek-ai/dsh-tools';
 export type { PluginConfig } from './config.ts';
 
 /** 宿主类型。插件内统一从这里导入。 */
-export type { Agent, Context, Events, ToolDefinition, ToolRunContext, Volatile };
+export type { Agent, Context, Events, ModelSelection, ToolDefinition, ToolRunContext, Volatile };
 
 declare module '@deepseek-ai/dsh-llm' {
   interface MessageSourceMap {
