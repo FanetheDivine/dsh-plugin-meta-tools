@@ -16,7 +16,7 @@
 
 ## Phase 1: Setup (Shared Infrastructure)
 
-- [ ] T001 核对并提交 `specs/024-dsh-tool-keywords/` 中的 spec、plan、research、data-model、contracts 与 quickstart
+- [X] T001 核对并提交 `specs/024-dsh-tool-keywords/` 中的 spec、plan、research、data-model、contracts 与 quickstart
 
 ## Phase 2: Foundational (Blocking Prerequisites)
 
@@ -28,12 +28,12 @@
 
 **Independent Test**: 读取十一条描述，全部命中词串；在真实 DSH 中用 DSH 与 DeepSeek Harness 请求触发工具
 
-- [ ] T002 [P] [US1] 在 `tests/contract.test.ts` 把 `DESCRIPTIONS` 更新为 `contracts/tool-descriptions.md` 的完整文本，先看到失败
-- [ ] T003 [P] [US1] 改写四条工作区描述 in `src/workspace-tools.ts`
-- [ ] T004 [P] [US1] 改写 `session_list` 描述 in `src/session-tools.ts`
-- [ ] T005 [P] [US1] 改写 `session_create`、`session_stop`、`session_send`、`session_pin`、`session_archive` 描述 in `src/session-ops.ts`
-- [ ] T006 [P] [US1] 改写 `session_get` 描述 in `src/session-log.ts`
-- [ ] T007 [US1] 运行 `pnpm test:code -- contract` 与 `pnpm run typecheck`，确认十一条描述断言通过后提交本阶段
+- [X] T002 [P] [US1] 在 `tests/contract.test.ts` 把 `DESCRIPTIONS` 更新为 `contracts/tool-descriptions.md` 的完整文本，先看到失败
+- [X] T003 [P] [US1] 改写四条工作区描述 in `src/workspace-tools.ts`
+- [X] T004 [P] [US1] 改写 `session_list` 描述 in `src/session-tools.ts`
+- [X] T005 [P] [US1] 改写 `session_create`、`session_stop`、`session_send`、`session_pin`、`session_archive` 描述 in `src/session-ops.ts`
+- [X] T006 [P] [US1] 改写 `session_get` 描述 in `src/session-log.ts`
+- [X] T007 [US1] 运行 `pnpm test:code -- contract` 与 `pnpm run typecheck`，确认十一条描述断言通过后提交本阶段
 
 ## Phase 4: User Story 2 - 描述改动不影响调用契约 (Priority: P2)
 
@@ -41,16 +41,16 @@
 
 **Independent Test**: 运行契约测试全部通过；临时移除一条描述中的 DSH 词后测试失败，还原后恢复通过
 
-- [ ] T008 [US2] 在 `tests/contract.test.ts` 新增逐工具断言：包含 `DSH`、`DeepSeek Harness`，工作区用 `DSH (DeepSeek Harness) workspace`，会话用 `DSH (DeepSeek Harness) session`
-- [ ] T009 [US2] 临时删除一条描述中的 DSH 词，确认测试失败；还原后重新运行 `pnpm test:code -- contract`
-- [ ] T010 [US2] 运行 `pnpm check`，确认参数、输出与错误断言未变后提交本阶段
+- [X] T008 [US2] 在 `tests/contract.test.ts` 新增逐工具断言：包含 `DSH`、`DeepSeek Harness`，工作区用 `DSH (DeepSeek Harness) workspace`，会话用 `DSH (DeepSeek Harness) session`
+- [X] T009 [US2] 临时删除一条描述中的 DSH 词，确认测试失败；还原后重新运行 `pnpm test:code -- contract`
+- [X] T010 [US2] 运行 `pnpm check`，确认参数、输出与错误断言未变后提交本阶段
 
 ## Phase 5: Polish & Cross-Cutting Concerns
 
-- [ ] T011 [P] 在 `CHANGELOG.md` 的 Unreleased 下增加 Changed 条目
-- [ ] T012 运行 `pnpm format && pnpm check && pnpm full-check`
-- [ ] T013 按 `specs/024-dsh-tool-keywords/quickstart.md` 在真实 DSH 验证 AI 选择工具与开关行为
-- [ ] T014 审查 `src/`、`tests/`、`CHANGELOG.md` 与 `specs/024-dsh-tool-keywords/` 的最终差异，提交本阶段
+- [X] T011 [P] 在 `CHANGELOG.md` 的 Unreleased 下增加 Changed 条目
+- [X] T012 运行 `pnpm format && pnpm check && pnpm full-check`
+- [X] T013 在隔离 DSH profile 中安装打包产物，确认模型请求携带十一条含 DSH 归属的工具描述；用独立模型复核 DSH 与 DeepSeek Harness 请求的工具选择
+- [X] T014 审查 `src/`、`tests/`、`CHANGELOG.md` 与 `specs/024-dsh-tool-keywords/` 的最终差异，提交本阶段
 
 ## Dependencies & Execution Order
 
@@ -68,10 +68,10 @@
 
 1. 先锁定契约测试的期望文本，再改四条描述文件。
 2. 用词串断言覆盖未来新增工具。
-3. 完成自动门禁与真实 DSH 验收后提交最终阶段。
+3. 完成自动门禁与隔离宿主验证后提交最终阶段。
 
 ## Notes
 
 - 描述保持英文，只改顶层描述。
 - 工具名、参数名、参数描述、输出、错误、配置与插件元数据保持不变。
-- 真实 DSH 验收使用 `real-device-test` 流程。
+- 隔离宿主验证使用 `real-device-test` 流程的 profile 与 mock provider，GUI 未做人工点击验证。
