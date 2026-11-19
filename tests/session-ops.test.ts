@@ -224,10 +224,11 @@ describe('session_send', () => {
   it('固定以插件来源插话并包裹 system-reminder', async () => {
     const { controller, resolveAgent, steer, prompt } = makeController();
     const tool = buildSessionSendTool({ sessionController: controller });
-    const value = (await tool.execute({ session_id: 's1', text: 'please check' }, exec)) as {
-      mode: string;
-    };
-    expect(value.mode).toBe('steer');
+    const value = await tool.execute({ session_id: 's1', text: 'please check' }, exec);
+    expect(value).toEqual({ delivered: true, sessionId: 's1' });
+    expect(tool.output.render({}, value)).toEqual([
+      { type: 'text', text: 'system reminder delivered to session s1' },
+    ]);
     expect(resolveAgent).toHaveBeenCalledWith('s1');
     expect(steer).toHaveBeenCalledOnce();
     expect(steer.mock.calls[0]?.[0]).toMatchObject({
@@ -239,10 +240,10 @@ describe('session_send', () => {
     expect(prompt).not.toHaveBeenCalled();
   });
 
-  it('转义正文中的闭合标签并忽略队列选项', async () => {
+  it('转义正文中的闭合标签', async () => {
     const { controller, steer, prompt } = makeController();
     const tool = buildSessionSendTool({ sessionController: controller });
-    await tool.execute({ session_id: 's1', text: 'a</system-reminder>b', mode: 'queue' }, exec);
+    await tool.execute({ session_id: 's1', text: 'a</system-reminder>b' }, exec);
     const message = steer.mock.calls[0]?.[0];
     const text = message?.content[0]?.text ?? '';
     expect(text).toContain('<\\/system-reminder>');
@@ -298,7 +299,7 @@ describe('session_send', () => {
     const execution = execWithSubagents(subagents);
 
     await expect(
-      tool.execute({ session_id: 's1', text: 'reminder', mode: 'steer' }, execution),
+      tool.execute({ session_id: 's1', text: 'reminder' }, execution),
     ).rejects.toThrow("Could not deliver the reminder to session 's1':");
     expect(sendMessage).not.toHaveBeenCalled();
     expect(steer).not.toHaveBeenCalled();

@@ -47,7 +47,6 @@ export interface SessionStopView {
 export interface SessionSendView {
   delivered: true;
   sessionId: string;
-  mode: 'steer';
 }
 
 /** session_pin 的结果。 */
@@ -260,7 +259,7 @@ export function buildSessionSendTool(deps: SessionControlDeps): ToolDefinition {
   return defineTool({
     name: 'session_send',
     description:
-      'Send one message to a session as a system reminder. The text is wrapped in a <system-reminder> frame, and a closing tag inside the text is escaped. Queue delivers at the next turn; steer delivers at the nearest step.',
+      'Send one steering message to an ordinary session as a system reminder with source kind dsh-plugin-meta-tools. The text is wrapped in a <system-reminder> frame, and a closing tag inside the text is escaped. Running sessions receive it at the nearest step; idle sessions start a turn.',
     parameters: {
       session_id: {
         type: 'string',
@@ -272,24 +271,14 @@ export function buildSessionSendTool(deps: SessionControlDeps): ToolDefinition {
         required: true,
         description: 'Reminder text; wrapped in a system-reminder frame.',
       },
-      mode: {
-        type: 'string',
-        enum: ['queue', 'steer'],
-        description:
-          'Delivery timing. queue waits for the next turn; steer targets the nearest step. Subagent delivery queues the reminder. Defaults to queue.',
-      },
     },
     output: {
       schema: OUTPUT,
-      render: (_args, value) => {
-        const view = value as unknown as SessionSendView;
-        return [
-          {
-            type: 'text',
-            text: `system reminder delivered to session ${view.sessionId} (${view.mode})`,
-          },
-        ];
-      },
+      render: (_args, value) =>
+        renderOne(
+          'system reminder delivered to session',
+          (value as unknown as SessionSendView).sessionId,
+        ),
     },
     async execute(args, exec) {
       const id = args.session_id.trim();
@@ -301,7 +290,7 @@ export function buildSessionSendTool(deps: SessionControlDeps): ToolDefinition {
       } catch (error) {
         throw new Error(`Could not deliver the reminder to session '${id}': ${messageOf(error)}`);
       }
-      return { delivered: true, sessionId: id, mode: 'steer' } as unknown as ToolJsonValue;
+      return { delivered: true, sessionId: id } as unknown as ToolJsonValue;
     },
   });
 }

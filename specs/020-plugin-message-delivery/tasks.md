@@ -59,11 +59,11 @@ description: "Task list for plugin message delivery constraints"
 
 ### Tests for User Story 2
 
-- [ ] T006 [P] [US2] 更新 `tests/contract.test.ts` 与 `tests/session-ops.test.ts`，断言 `mode` 输入和返回不存在、说明只描述插话，并确认旧实现失败
+- [X] T006 [P] [US2] 更新 `tests/contract.test.ts` 与 `tests/session-ops.test.ts`，断言 `mode` 输入和返回不存在、说明只描述插话，并确认旧实现失败
 
 ### Implementation for User Story 2
 
-- [ ] T007 [US2] 在 `src/session-ops.ts` 删除 `mode` 参数、`args.mode` 分支、`SessionSendView.mode`、返回字段与渲染后缀
+- [X] T007 [US2] 在 `src/session-ops.ts` 删除 `mode` 参数、`args.mode` 分支、`SessionSendView.mode`、返回字段与渲染后缀
 
 **Checkpoint**: 固定插话成为唯一公开投递方式。
 
