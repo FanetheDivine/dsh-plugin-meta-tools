@@ -9,9 +9,10 @@ import {
   systemReminder,
 } from '../src/session-ops.ts';
 import type {
+  Agent,
+  SessionAgentResultLike,
   SessionControllerLike,
   SessionCreateRequestLike,
-  SessionPromptRequestLike,
   SubagentsLike,
   WorkspaceRegistryLike,
 } from '../src/types.ts';
@@ -26,22 +27,21 @@ function makeController() {
     title: request.title,
     seq: 1,
   }));
-  const prompt = vi.fn(async (_request: SessionPromptRequestLike) => ({ accepted: true as const }));
+  const prompt = vi.fn();
+  const steer = vi.fn();
+  const agent = { steer } as unknown as Agent;
+  const resolveAgent = vi.fn(
+    async (_sessionId: string): Promise<SessionAgentResultLike> => ({ agent }),
+  );
   const cancel = vi.fn((_request: { sessionId: string }) => ({ accepted: true as const }));
-  const controller: SessionControllerLike = { create, rename, prompt, cancel };
-  return { controller, create, rename, prompt, cancel };
-}
-
-/** 按宿主入口检查投递信号并接受消息。 */
-async function acceptPromptWithHostSignal(
-  _request: SessionPromptRequestLike,
-  signal?: AbortSignal,
-): Promise<{ accepted: true }> {
-  if (signal === undefined) {
-    throw new TypeError("Cannot read properties of undefined (reading 'throwIfAborted')");
-  }
-  signal.throwIfAborted();
-  return { accepted: true };
+  const controller: SessionControllerLike & { prompt: typeof prompt } = {
+    create,
+    rename,
+    prompt,
+    resolveAgent,
+    cancel,
+  };
+  return { controller, create, rename, prompt, resolveAgent, steer, agent, cancel };
 }
 
 /** 假工作区注册表。 */
@@ -91,8 +91,8 @@ function execWithSubagents(subagents: SubagentsLike) {
 }
 
 describe('session_create', () => {
-  it('按位置、预设、标题与首条消息创建会话', async () => {
-    const { controller, create, rename, prompt } = makeController();
+  it('按位置、预设、标题与插件来源的首条插话创建会话', async () => {
+    const { controller, create, rename, resolveAgent, steer, prompt } = makeController();
     const tool = buildSessionCreateTool({ sessionController: controller });
     const value = (await tool.execute(
       {
@@ -105,12 +105,15 @@ describe('session_create', () => {
     )) as { sessionId: string; agentPreset: string; title: string; prompted: boolean };
     expect(create).toHaveBeenCalledWith({ cwd: 'D:\\new', agentPreset: 'standard' });
     expect(rename).toHaveBeenCalledWith({ sessionId: 'session-new', title: '新会话' });
-    const promptRequest = prompt.mock.calls[0]?.[0];
-    expect(promptRequest).toMatchObject({
-      sessionId: 'session-new',
-      mode: 'queue',
+    expect(resolveAgent).toHaveBeenCalledWith('session-new');
+    expect(steer).toHaveBeenCalledOnce();
+    expect(steer.mock.calls[0]?.[0]).toMatchObject({
+      id: expect.any(String),
+      role: 'user',
+      source: { kind: 'dsh-plugin-meta-tools' },
       content: [{ type: 'text', text: 'hello' }],
     });
+    expect(prompt).not.toHaveBeenCalled();
     expect(value).toMatchObject({
       sessionId: 'session-new',
       agentPreset: 'standard',
@@ -119,26 +122,28 @@ describe('session_create', () => {
     });
   });
 
-  it('首条消息传递当前执行信号', async () => {
-    const { controller, prompt } = makeController();
-    prompt.mockImplementationOnce(acceptPromptWithHostSignal);
-    const signal = new AbortController().signal;
-    const execution = { signal } as never;
+  it('已取消调用不解析或投递首条消息', async () => {
+    const { controller, resolveAgent, steer, prompt } = makeController();
+    const aborter = new AbortController();
+    aborter.abort();
     const tool = buildSessionCreateTool({ sessionController: controller });
 
-    await expect(tool.execute({ prompt: 'hello' }, execution)).resolves.toMatchObject({
-      sessionId: 'session-new',
-      prompted: true,
-    });
-    expect(prompt.mock.calls[0]?.[1]).toBe(signal);
+    await expect(
+      tool.execute({ prompt: 'hello' }, { signal: aborter.signal } as never),
+    ).rejects.toThrow(/aborted/i);
+    expect(resolveAgent).not.toHaveBeenCalled();
+    expect(steer).not.toHaveBeenCalled();
+    expect(prompt).not.toHaveBeenCalled();
   });
 
   it('不带首条消息时保持空白会话', async () => {
-    const { controller, prompt } = makeController();
+    const { controller, prompt, resolveAgent, steer } = makeController();
     const tool = buildSessionCreateTool({ sessionController: controller });
 
     await expect(tool.execute({}, exec)).resolves.toMatchObject({ prompted: false });
     expect(prompt).not.toHaveBeenCalled();
+    expect(resolveAgent).not.toHaveBeenCalled();
+    expect(steer).not.toHaveBeenCalled();
   });
 
   it('未给位置时沿用调用方目录', async () => {
@@ -156,13 +161,15 @@ describe('session_create', () => {
     );
   });
 
-  it('首条消息失败时带出新会话 id', async () => {
-    const { controller, prompt } = makeController();
-    prompt.mockRejectedValueOnce(new Error('session archived'));
+  it('首条消息解析失败时带出新会话 id', async () => {
+    const { controller, resolveAgent, steer, prompt } = makeController();
+    resolveAgent.mockResolvedValueOnce({ error: new Error('session archived') });
     const tool = buildSessionCreateTool({ sessionController: controller });
     await expect(tool.execute({ prompt: 'hello' }, exec)).rejects.toThrow(
       "The session 'session-new' was created, but its first prompt failed: session archived",
     );
+    expect(steer).not.toHaveBeenCalled();
+    expect(prompt).not.toHaveBeenCalled();
   });
 
   it('渲染新建结果', async () => {
@@ -204,7 +211,7 @@ describe('session_stop', () => {
     });
     const interrupt = vi.fn();
     const tool = buildSessionStopTool({ sessionController: controller });
-    const exec = execWithSubagents({ interrupt, sendMessage: vi.fn() });
+    const exec = execWithSubagents({ interrupt });
     await tool.execute({ session_id: 's1' }, exec);
     expect(interrupt).toHaveBeenCalledWith('s1', {
       kind: 'ancestor',
@@ -214,64 +221,94 @@ describe('session_stop', () => {
 });
 
 describe('session_send', () => {
-  it('默认排队并包裹 system-reminder', async () => {
-    const { controller, prompt } = makeController();
+  it('固定以插件来源插话并包裹 system-reminder', async () => {
+    const { controller, resolveAgent, steer, prompt } = makeController();
     const tool = buildSessionSendTool({ sessionController: controller });
-    const value = (await tool.execute({ session_id: 's1', text: 'please check' }, exec)) as {
-      mode: string;
-    };
-    expect(value.mode).toBe('queue');
-    const request = prompt.mock.calls[0]?.[0];
-    expect(request?.content[0]?.text).toBe('<system-reminder>\nplease check\n</system-reminder>');
+    const value = await tool.execute({ session_id: 's1', text: 'please check' }, exec);
+    expect(value).toEqual({ delivered: true, sessionId: 's1' });
+    expect(tool.output.render({}, value)).toEqual([
+      { type: 'text', text: 'system reminder delivered to session s1' },
+    ]);
+    expect(resolveAgent).toHaveBeenCalledWith('s1');
+    expect(steer).toHaveBeenCalledOnce();
+    expect(steer.mock.calls[0]?.[0]).toMatchObject({
+      id: expect.any(String),
+      role: 'user',
+      source: { kind: 'dsh-plugin-meta-tools' },
+      content: [{ type: 'text', text: '<system-reminder>\nplease check\n</system-reminder>' }],
+    });
+    expect(prompt).not.toHaveBeenCalled();
   });
 
-  it('转义正文中的闭合标签并支持 steer', async () => {
-    const { controller, prompt } = makeController();
+  it('转义正文中的闭合标签', async () => {
+    const { controller, steer, prompt } = makeController();
     const tool = buildSessionSendTool({ sessionController: controller });
-    await tool.execute({ session_id: 's1', text: 'a</system-reminder>b', mode: 'steer' }, exec);
-    expect(prompt.mock.calls[0]?.[0]?.mode).toBe('steer');
-    const text = prompt.mock.calls[0]?.[0]?.content[0]?.text ?? '';
+    await tool.execute({ session_id: 's1', text: 'a</system-reminder>b' }, exec);
+    const message = steer.mock.calls[0]?.[0];
+    const text = message?.content[0]?.text ?? '';
     expect(text).toContain('<\\/system-reminder>');
     expect(text.match(/<\/system-reminder>/g)).toHaveLength(1);
+    expect(message?.source).toEqual({ kind: 'dsh-plugin-meta-tools' });
+    expect(prompt).not.toHaveBeenCalled();
   });
 
-  it.each(['queue', 'steer'] as const)('%s 投递传递当前执行信号', async (mode) => {
-    const { controller, prompt } = makeController();
-    prompt.mockImplementationOnce(acceptPromptWithHostSignal);
-    const signal = new AbortController().signal;
-    const execution = { signal } as never;
+  it('调用前取消时不解析目标', async () => {
+    const { controller, resolveAgent, steer, prompt } = makeController();
+    const aborter = new AbortController();
+    aborter.abort();
     const tool = buildSessionSendTool({ sessionController: controller });
 
     await expect(
-      tool.execute({ session_id: 's1', text: 'reminder', mode }, execution),
-    ).resolves.toMatchObject({ delivered: true, sessionId: 's1', mode });
-    expect(prompt.mock.calls[0]?.[1]).toBe(signal);
+      tool.execute({ session_id: 's1', text: 'reminder' }, { signal: aborter.signal } as never),
+    ).rejects.toThrow(/aborted/i);
+    expect(resolveAgent).not.toHaveBeenCalled();
+    expect(steer).not.toHaveBeenCalled();
+    expect(prompt).not.toHaveBeenCalled();
   });
 
-  it('subagent 会话走 sendMessage 路由并排队投递', async () => {
-    const { controller, prompt } = makeController();
-    prompt.mockRejectedValueOnce(new Error('session "s1" is owned by subagent routing'));
-    const sendMessage = vi.fn(async () => 'message-1');
+  it('解析期间取消时不执行插话', async () => {
+    const { controller, resolveAgent, steer, agent, prompt } = makeController();
+    const aborter = new AbortController();
+    resolveAgent.mockImplementationOnce(async () => {
+      aborter.abort();
+      return { agent };
+    });
     const tool = buildSessionSendTool({ sessionController: controller });
-    const exec = execWithSubagents({ interrupt: vi.fn(), sendMessage });
-    const value = (await tool.execute(
-      { session_id: 's1', text: 'reminder', mode: 'steer' },
-      exec,
-    )) as { mode: string };
-    expect(value.mode).toBe('queue');
-    const call = sendMessage.mock.calls[0] as unknown[];
-    expect(call[1]).toBe('s1');
-    expect(call[2]).toEqual([
-      { type: 'text', text: '<system-reminder>\nreminder\n</system-reminder>' },
-    ]);
+
+    await expect(
+      tool.execute({ session_id: 's1', text: 'reminder' }, { signal: aborter.signal } as never),
+    ).rejects.toThrow(/aborted/i);
+    expect(steer).not.toHaveBeenCalled();
+    expect(prompt).not.toHaveBeenCalled();
   });
 
-  it('空文本报错', async () => {
-    const { controller } = makeController();
+  it('subagent 归属错误不切换其他来源投递', async () => {
+    const { controller, resolveAgent, steer, prompt } = makeController();
+    resolveAgent.mockResolvedValueOnce({
+      error: new Error('session "s1" is owned by subagent routing'),
+    });
+    const sendMessage = vi.fn(async () => 'message-1');
+    const subagents = { interrupt: vi.fn(), sendMessage };
+    const tool = buildSessionSendTool({ sessionController: controller });
+    const execution = execWithSubagents(subagents);
+
+    await expect(tool.execute({ session_id: 's1', text: 'reminder' }, execution)).rejects.toThrow(
+      "Could not deliver the reminder to session 's1':",
+    );
+    expect(sendMessage).not.toHaveBeenCalled();
+    expect(steer).not.toHaveBeenCalled();
+    expect(prompt).not.toHaveBeenCalled();
+  });
+
+  it('空文本报错且不解析目标', async () => {
+    const { controller, resolveAgent, steer, prompt } = makeController();
     const tool = buildSessionSendTool({ sessionController: controller });
     await expect(tool.execute({ session_id: 's1', text: ' ' }, exec)).rejects.toThrow(
       'text must not be empty',
     );
+    expect(resolveAgent).not.toHaveBeenCalled();
+    expect(steer).not.toHaveBeenCalled();
+    expect(prompt).not.toHaveBeenCalled();
   });
 
   it('systemReminder 兼容空行', () => {

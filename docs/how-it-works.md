@@ -76,10 +76,12 @@ DSH 插件是一个 npm 包。宿主按约定的入口加载宿主部分，按 `
 
 ### 会话操作
 
-- `session_create` 调 `sessionController.create`；给出标题时再调 `rename`，给出首条消息时调 `prompt`。
+- `session_create` 调 `sessionController.create`；给出标题时再调 `rename`，给出首条消息时与 `session_send` 共用插件插话链路。
 - `session_stop` 调 `sessionController.cancel`，只取消当前轮次。
-- `session_send` 把文本包进 `<system-reminder>` 帧，转义正文里的闭合标签，再调 `prompt` 投递。
-- 两条投递链路均把当前工具调用的 `AbortSignal` 作为 `prompt` 的第二参数，支持宿主入口检查与调用方取消。
+- 插件插话链路用 `createUserMessage` 构造完整消息，来源固定为 `{ kind: 'dsh-plugin-meta-tools' }`，再经 `sessionController.resolveAgent` 取得普通会话 Agent 并调用 `steer`。
+- `session_send` 先把文本包进 `<system-reminder>` 帧并转义正文里的闭合标签，再走同一插件插话链路。
+- 两条投递链路均在解析目标前后检查当前工具调用的 `AbortSignal`。
+- subagent 的专用消息路由使用其他来源，本插件拒绝通过该路由投递会话消息。
 - `session_pin` 调 `pinSession` / `unpinSession`；`session_archive` 调 `archiveSession` / `unarchiveSession`。
 - 归档运行中的会话需要 `stopActivity: true`，否则注册表拒绝。
 

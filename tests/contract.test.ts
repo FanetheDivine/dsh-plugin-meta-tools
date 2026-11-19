@@ -35,7 +35,7 @@ const DESCRIPTIONS: Record<string, string> = {
     'Create a session, optionally in a workspace or directory, with an agent preset, a title, and a first prompt. Returns the new session id.',
   session_stop: 'Cancel the current turn of one session without dropping its pending messages.',
   session_send:
-    'Send one message to a session as a system reminder. The text is wrapped in a <system-reminder> frame, and a closing tag inside the text is escaped. Queue delivers at the next turn; steer delivers at the nearest step.',
+    'Send one steering message to an ordinary session as a system reminder with source kind dsh-plugin-meta-tools. The text is wrapped in a <system-reminder> frame, and a closing tag inside the text is escaped. Running sessions receive it at the nearest step; idle sessions start a turn.',
   session_pin:
     'Pin a session to the top of its list, or remove the pin. A pinned session must exist and must not be archived.',
   session_archive:
@@ -119,10 +119,12 @@ describe('工具契约', () => {
     });
     expect(property(tools.session_get, 'session_id')).toMatchObject({ type: 'string' });
     expect(property(tools.session_create, 'cwd')).toMatchObject({ type: 'string' });
-    expect(property(tools.session_send, 'mode')).toMatchObject({
-      type: 'string',
-      enum: ['queue', 'steer'],
-    });
+    expect(property(tools.session_send, 'mode')).toBeUndefined();
+    expect(
+      Object.keys(
+        (tools.session_send.parameters as { properties: Record<string, unknown> }).properties,
+      ),
+    ).toEqual(['session_id', 'text']);
     expect(property(tools.session_send, 'text')).toMatchObject({
       type: 'string',
       description: 'Reminder text; wrapped in a system-reminder frame.',

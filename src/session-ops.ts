@@ -1,15 +1,17 @@
 /**
  * 会话操作工具：session_create、session_stop、session_send、session_pin 与 session_archive。
- * 新建与投递走 sessionController，置顶与归档走 workspaceRegistry。
+ * 新建与解析走 sessionController，插件消息走 Agent.steer，置顶与归档走 workspaceRegistry。
  */
-import { randomUUID } from 'node:crypto';
-
+import { createUserMessage } from '@deepseek-ai/dsh-llm';
 import { defineTool, ToolArgsError } from '@deepseek-ai/dsh-tools';
+
+import { PLUGIN_LABEL } from './constants.ts';
 
 import type {
   Agent,
   SessionControllerLike,
   SubagentsLike,
+  TextContentBlockLike,
   ToolDefinition,
   ToolJsonValue,
   WorkspaceRegistryLike,
@@ -45,7 +47,6 @@ export interface SessionStopView {
 export interface SessionSendView {
   delivered: true;
   sessionId: string;
-  mode: 'queue' | 'steer';
 }
 
 /** session_pin 的结果。 */
@@ -72,6 +73,25 @@ function messageOf(error: unknown): string {
 export function systemReminder(text: string): string {
   const escaped = text.trim().replaceAll('</system-reminder>', '<\\/system-reminder>');
   return `<system-reminder>\n${escaped}\n</system-reminder>`;
+}
+
+/** 以当前插件为来源，向普通会话的最近步骤投递一条消息。 */
+async function steerPluginMessage(
+  sessionController: SessionControllerLike,
+  sessionId: string,
+  content: readonly TextContentBlockLike[],
+  signal: AbortSignal,
+): Promise<void> {
+  signal.throwIfAborted();
+  const resolved = await sessionController.resolveAgent(sessionId);
+  signal.throwIfAborted();
+  if ('error' in resolved) throw resolved.error;
+  resolved.agent.steer(
+    createUserMessage({
+      content,
+      source: { kind: PLUGIN_LABEL },
+    }),
+  );
 }
 
 /** 宿主把 subagent 会话交给独立的子代理路由。 */
@@ -169,13 +189,10 @@ export function buildSessionCreateTool(deps: SessionControlDeps): ToolDefinition
       const prompt = typeof args.prompt === 'string' ? args.prompt.trim() : '';
       if (prompt !== '') {
         try {
-          await sessionController.prompt(
-            {
-              requestId: randomUUID(),
-              sessionId: created.sessionId,
-              mode: 'queue',
-              content: [{ type: 'text', text: prompt }],
-            },
+          await steerPluginMessage(
+            sessionController,
+            created.sessionId,
+            [{ type: 'text', text: prompt }],
             exec.signal,
           );
           prompted = true;
@@ -242,7 +259,7 @@ export function buildSessionSendTool(deps: SessionControlDeps): ToolDefinition {
   return defineTool({
     name: 'session_send',
     description:
-      'Send one message to a session as a system reminder. The text is wrapped in a <system-reminder> frame, and a closing tag inside the text is escaped. Queue delivers at the next turn; steer delivers at the nearest step.',
+      'Send one steering message to an ordinary session as a system reminder with source kind dsh-plugin-meta-tools. The text is wrapped in a <system-reminder> frame, and a closing tag inside the text is escaped. Running sessions receive it at the nearest step; idle sessions start a turn.',
     parameters: {
       session_id: {
         type: 'string',
@@ -254,57 +271,26 @@ export function buildSessionSendTool(deps: SessionControlDeps): ToolDefinition {
         required: true,
         description: 'Reminder text; wrapped in a system-reminder frame.',
       },
-      mode: {
-        type: 'string',
-        enum: ['queue', 'steer'],
-        description:
-          'Delivery timing. queue waits for the next turn; steer targets the nearest step. Subagent delivery queues the reminder. Defaults to queue.',
-      },
     },
     output: {
       schema: OUTPUT,
-      render: (_args, value) => {
-        const view = value as unknown as SessionSendView;
-        return [
-          {
-            type: 'text',
-            text: `system reminder delivered to session ${view.sessionId} (${view.mode})`,
-          },
-        ];
-      },
+      render: (_args, value) =>
+        renderOne(
+          'system reminder delivered to session',
+          (value as unknown as SessionSendView).sessionId,
+        ),
     },
     async execute(args, exec) {
       const id = args.session_id.trim();
       const text = args.text.trim();
       if (text === '') throw new ToolArgsError(['text must not be empty']);
-      const mode = args.mode === 'steer' ? 'steer' : 'queue';
       const content = [{ type: 'text' as const, text: systemReminder(text) }];
       try {
-        await sessionController.prompt(
-          {
-            requestId: randomUUID(),
-            sessionId: id,
-            mode,
-            content,
-          },
-          exec.signal,
-        );
+        await steerPluginMessage(sessionController, id, content, exec.signal);
       } catch (error) {
-        const sender = exec.agent;
-        const subagents = subagentsOf(sender);
-        if (isSubagentRouting(error) && sender !== undefined && subagents !== undefined) {
-          try {
-            await subagents.sendMessage(sender, id, content, { signal: exec.signal });
-            return { delivered: true, sessionId: id, mode: 'queue' } as unknown as ToolJsonValue;
-          } catch (deliveryError) {
-            throw new Error(
-              `Could not deliver the reminder to session '${id}': ${messageOf(deliveryError)}`,
-            );
-          }
-        }
         throw new Error(`Could not deliver the reminder to session '${id}': ${messageOf(error)}`);
       }
-      return { delivered: true, sessionId: id, mode } as unknown as ToolJsonValue;
+      return { delivered: true, sessionId: id } as unknown as ToolJsonValue;
     },
   });
 }

@@ -15,6 +15,13 @@ export type { PluginConfig } from './config.ts';
 /** 宿主类型。插件内统一从这里导入。 */
 export type { Agent, Context, Events, ToolDefinition, ToolRunContext, Volatile };
 
+declare module '@deepseek-ai/dsh-llm' {
+  interface MessageSourceMap {
+    /** 本插件投递的用户角色消息。 */
+    'dsh-plugin-meta-tools': { kind: 'dsh-plugin-meta-tools' };
+  }
+}
+
 /** 工具返回给宿主的 JSON 值。 */
 export type ToolJsonValue =
   | string
@@ -193,13 +200,8 @@ export interface SessionRenameResultLike {
   readonly seq?: number;
 }
 
-/** 投递消息的请求。 */
-export interface SessionPromptRequestLike {
-  readonly requestId: string;
-  readonly sessionId: string;
-  readonly mode: 'queue' | 'steer';
-  readonly content: readonly TextContentBlockLike[];
-}
+/** 普通会话 Agent 的解析结果。 */
+export type SessionAgentResultLike = { readonly agent: Agent } | { readonly error: Error };
 
 /** 会话控制服务（`ctx.sessionController`）中本插件用到的部分。 */
 export interface SessionControllerLike {
@@ -210,24 +212,14 @@ export interface SessionControllerLike {
     readonly sessionId: string;
     readonly title: string;
   }): Promise<SessionRenameResultLike>;
-  /** 投递一条消息，并接收调用方的取消信号。 */
-  prompt(
-    request: SessionPromptRequestLike,
-    signal: AbortSignal,
-  ): Promise<{ readonly accepted: true }>;
+  /** 解析或恢复普通会话的 Agent。 */
+  resolveAgent(sessionId: string): Promise<SessionAgentResultLike>;
   /** 取消当前轮次。 */
   cancel(request: { readonly sessionId: string }): { readonly accepted: true };
 }
 
 /** 子代理路由服务（`ctx.subagents`）中本插件用到的部分。 */
 export interface SubagentsLike {
-  /** 把消息投递给 sender 子树内的 subagent 会话。 */
-  sendMessage(
-    sender: Agent,
-    targetId: string,
-    content: readonly TextContentBlockLike[],
-    options: { readonly signal: AbortSignal },
-  ): Promise<string>;
   /** 中断一个 subagent 会话的当前执行。 */
   interrupt(
     targetSessionId: string,
