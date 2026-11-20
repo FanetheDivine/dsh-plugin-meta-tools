@@ -14,8 +14,8 @@ import type {
 import { SettingsFormModel, settingsTextField } from '@deepseek-ai/dsh-client-ui-primitives';
 
 import {
-  SESSION_MODEL_CONFIG_KEYS,
-  type SessionModelConfigKey,
+  SESSION_DEFAULT_CONFIG_KEYS,
+  type SessionDefaultConfigKey,
   TOOL_NAMES,
   type ToolName,
 } from '../constants.ts';
@@ -28,7 +28,7 @@ export const ROW_ID = 'dsh-plugin-meta-tools';
 
 /** 配置页可编辑的十一个开关与三个默认模型字符串。 */
 export type ConfigFields = { [K in ToolName]: boolean } & {
-  [K in SessionModelConfigKey]: string;
+  [K in SessionDefaultConfigKey]: string;
 };
 
 /** 配置页读取的草稿与表单状态。 */
@@ -55,7 +55,7 @@ function switchSpec(field: ToolName): SettingsFieldSpec {
 /** 全部字段定义：先开关，后默认模型字符串。 */
 const FIELD_SPECS: SettingsFieldSpec[] = [
   ...TOOL_NAMES.map(switchSpec),
-  ...SESSION_MODEL_CONFIG_KEYS.map((field) => settingsTextField(field)),
+  ...SESSION_DEFAULT_CONFIG_KEYS.map((field) => settingsTextField(field)),
 ];
 
 /**
@@ -71,7 +71,7 @@ export class PluginConfigForm {
     this.form = new SettingsFormModel(scope, FIELD_SPECS);
     this.state = this.form.bind(() => {
       const fields = {} as Record<keyof ConfigFields, SettingsFieldState>;
-      for (const field of [...TOOL_NAMES, ...SESSION_MODEL_CONFIG_KEYS]) {
+      for (const field of [...TOOL_NAMES, ...SESSION_DEFAULT_CONFIG_KEYS]) {
         fields[field] = this.form.field(field);
       }
       return { ...this.form.shell(), ...fields };

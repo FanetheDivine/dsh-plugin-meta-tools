@@ -31,7 +31,7 @@ export type ToolJsonValue =
   | ToolJsonValue[]
   | { [key: string]: ToolJsonValue };
 
-/** 工作区注册表暴露的单个工作区。字段与宿主 0.2.2-rc.3 一致。 */
+/** 工作区注册表暴露的单个工作区。字段与宿主 0.2.2-rc.5 一致。 */
 export interface WorkspaceLike {
   /** 稳定的注册 id。 */
   readonly id: string;
@@ -209,8 +209,27 @@ export interface SessionRenameResultLike {
 /** 普通会话 Agent 的解析结果。 */
 export type SessionAgentResultLike = { readonly agent: Agent } | { readonly error: Error };
 
-/** 会话控制服务（`ctx.sessionController`）中本插件用到的部分。 */
-export interface SessionControllerLike {
+/** 宿主预设名册中的一行。 */
+export interface AgentPresetRowLike {
+  /** 预设标识。 */
+  readonly id: string;
+  /** 显示名称。 */
+  readonly name?: string;
+  /** 用途说明。 */
+  readonly description?: string;
+  /** 是否为宿主“新任务默认预设”。 */
+  readonly isDefault?: boolean;
+  /** 不可用原因；存在时不可组合会话。 */
+  readonly broken?: string;
+}
+
+/** 宿主预设服务（`ctx.agentPresets`）中本插件用到的部分。 */
+export interface AgentPresetsLike {
+  /** 读取当前声明，包含不可用行。 */
+  list(): Promise<readonly AgentPresetRowLike[]>;
+}
+
+/** 会话控制服务（`ctx.sessionController`）中本插件用到的部分。 */export interface SessionControllerLike {
   /** 新建或复用会话。 */
   create(request: SessionCreateRequestLike): Promise<SessionCreateResultLike>;
   /** 重命名会话。 */

@@ -18,19 +18,19 @@
 
 **Purpose**: 把依赖对齐到宿主 0.2.2-rc.5，并确认 rc.5 的客户端包布局仍支持现有导入。
 
-- [ ] T001 在 `package.json` 把全部 `@deepseek-ai/dsh-*` devDependencies 升级到 `0.2.2-rc.5`，新增 `@deepseek-ai/dsh-agent-preset-registry@0.2.2-rc.5`，并在 `pnpm-workspace.yaml` 的 `minimumReleaseAgeExclude` 增加新包条目
-- [ ] T002 运行 `pnpm install`，核对 rc.5 的 `dsh-client-ui-primitives`、`dsh-client-store`、`dsh-client-ui-model-selection` 源码路径与导出；按实际路径修正 `vitest.config.ts` 别名与 `tests/support/primitives.ts`
-- [ ] T003 运行 `pnpm check` 并提交 Phase 1（提交说明包含依赖升级范围）
+- [X] T001 在 `package.json` 把全部 `@deepseek-ai/dsh-*` devDependencies 升级到 `0.2.2-rc.5`，新增 `@deepseek-ai/dsh-agent-preset-registry@0.2.2-rc.5`，并在 `pnpm-workspace.yaml` 的 `minimumReleaseAgeExclude` 增加新包条目
+- [X] T002 运行 `pnpm install`，核对 rc.5 的 `dsh-client-ui-primitives`、`dsh-client-store`、`dsh-client-ui-model-selection` 源码路径与导出；按实际路径修正 `vitest.config.ts` 别名与 `tests/support/primitives.ts`
+- [X] T003 运行 `pnpm check` 并提交 Phase 1（提交说明包含依赖升级范围）
 
 ## Phase 2: Foundational (Blocking Prerequisites)
 
 **Purpose**: 两端共用的配置字段、类型与字典。
 
-- [ ] T004 [P] 在 `tests/config.test.ts` 增加 `session_preset` 缺省值、字符串校验、空白与非法类型测试
-- [ ] T005 在 `src/constants.ts`、`src/config.ts` 增加 `session_preset`：默认空字符串、volatile、仅字符串校验、不参与成对校验，并扩展 `PluginConfig`
-- [ ] T006 [P] 在 `tests/config-form.test.ts` 增加草稿字段、保存写操作与恢复测试
-- [ ] T007 在 `src/client/config-form.ts` 把 `session_preset` 纳入 `ConfigFields` 与 `FIELD_SPECS`
-- [ ] T008 在 `src/types.ts` 增加 `AgentPresetRowLike` 与 `AgentPresetsLike`（`list()` 返回含 `id`、`name`、`description`、`broken` 的行），供后端与客户端共用
+- [X] T004 [P] 在 `tests/config.test.ts` 增加 `session_preset` 缺省值、字符串校验、空白与非法类型测试
+- [X] T005 在 `src/constants.ts`、`src/config.ts` 增加 `session_preset`：默认空字符串、volatile、仅字符串校验、不参与成对校验，并扩展 `PluginConfig`
+- [X] T006 [P] 在 `tests/config-form.test.ts` 增加草稿字段、保存写操作与恢复测试
+- [X] T007 在 `src/client/config-form.ts` 把 `session_preset` 纳入 `ConfigFields` 与 `FIELD_SPECS`
+- [X] T008 在 `src/types.ts` 增加 `AgentPresetRowLike` 与 `AgentPresetsLike`（`list()` 返回含 `id`、`name`、`description`、`broken` 的行），供后端与客户端共用
 
 ## Phase 3: User Story 1 - 在配置页选择新增会话的预设 (Priority: P1) 🎯 MVP
 

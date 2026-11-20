@@ -22,6 +22,7 @@ const ALL_ON: ConfigFields = {
   session_provider: '',
   session_model: '',
   session_effort: '',
+  session_preset: '',
 };
 
 /** 构造表单与它读取的状态。 */
@@ -95,6 +96,22 @@ describe('配置页草稿', () => {
     actions.edit('session_model', 'other');
     actions.discard();
     expect(state().session_model.text).toBe('deepseek-chat');
+  });
+
+  it('默认预设随草稿保存与放弃', async () => {
+    const { fake, form, state } = setup();
+    const actions = form.inject();
+    actions.edit('session_preset', 'cordis');
+    expect(state().session_preset.text).toBe('cordis');
+
+    await actions.save();
+    expect(fake.writes[0]).toEqual(
+      expect.arrayContaining([{ op: 'set', path: ['session_preset'], value: 'cordis' }]),
+    );
+    fake.publish({ value: { ...ALL_ON, session_preset: 'cordis' } });
+    actions.edit('session_preset', 'ptc');
+    actions.discard();
+    expect(state().session_preset.text).toBe('cordis');
   });
 });
 

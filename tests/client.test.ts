@@ -55,6 +55,7 @@ function pageState(overrides: Partial<ConfigFormState> = {}): ConfigFormState {
     session_provider: { text: '', overridden: false, invalid: false },
     session_model: { text: '', overridden: false, invalid: false },
     session_effort: { text: '', overridden: false, invalid: false },
+    session_preset: { text: '', overridden: false, invalid: false },
     ...overrides,
   };
 }

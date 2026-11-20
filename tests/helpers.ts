@@ -267,6 +267,7 @@ export function makeClientCtx() {
             session_provider: '',
             session_model: '',
             session_effort: '',
+            session_preset: '',
           },
         });
         state._configFormScopes.push(fake);
