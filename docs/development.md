@@ -56,6 +56,13 @@ dsh plugin add dsh-plugin-meta-tools
 - `PLATFORM_MODULES` 列出宿主冻结模块表提供的模块，构建时保持 external。
 - 类型声明由 `tsc -p tsconfig.build.json` 生成到 `dist/`。
 
+## 前端 UI 链接
+
+前端 UI 里 `a` 标签的 `href` MUST 使用完整 URL：
+
+- 完整 URL 含协议与主机，例如 `https://github.com/FanetheDivine/dsh-plugin-meta-tools`。
+- Desktop 用应用内地址加载前端页面。`href` 写成相对路径时，点击后指向应用地址，打不开目标。
+
 ## 命令
 
 | 命令 | 作用 |
