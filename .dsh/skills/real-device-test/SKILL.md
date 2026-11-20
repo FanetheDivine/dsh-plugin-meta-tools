@@ -62,7 +62,7 @@ node run-test.mjs
 
 | 用例 | 断言 |
 | --- | --- |
-| A1 装载 | 插件已激活，已安装版本和 dist 哈希与仓库一致 |
+| A1 装载 | 插件已激活，加载的版本和 dist 哈希与仓库一致 |
 | B1 工具调用 | 请求携带 `demo_echo`，工具结果为 `[rdt] (session <id>) hello` |
 | B2 热更新 | 修改 `prefix` 后回显使用新前缀，插件实例不变 |
 | B3 关闭工具 | `demoEnabled: false` 时请求不含 `demo_echo` |
@@ -141,10 +141,10 @@ pnpm build        # 或 pnpm dev，持续监听 src
 
 ## 阶段 5：报告与清理
 
-1. 按 [cases.md](references/cases.md) 末尾的结构写报告。
+1. 按 [cases.md](references/cases.md) 末尾的结构写报告，保存截图与结果文件。
 2. 结束 GUI 进程：用 `netstat -ano` 找到 GUI 端口的 PID，再 `taskkill //F //T //PID <pid>`。
 3. 浏览器驱动会自行关闭浏览器，无需清理页面。
-4. 保留 profile、日志与截图供复查。
+4. 删除 profile：`rm -rf <profile目录>`。下一轮重新搭建。
 
 ## 环境变量
 
