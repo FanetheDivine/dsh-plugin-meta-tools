@@ -229,7 +229,7 @@ export interface AgentPresetsLike {
   list(): Promise<readonly AgentPresetRowLike[]>;
 }
 
-/** 会话控制服务（`ctx.sessionController`）中本插件用到的部分。 */export interface SessionControllerLike {
+/** 会话控制服务（`ctx.sessionController`）中本插件用到的部分。 */ export interface SessionControllerLike {
   /** 新建或复用会话。 */
   create(request: SessionCreateRequestLike): Promise<SessionCreateResultLike>;
   /** 重命名会话。 */

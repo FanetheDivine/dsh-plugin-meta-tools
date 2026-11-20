@@ -75,6 +75,21 @@ function renderConfigPage(
     save: vi.fn(),
     discard: vi.fn(),
     modelDefaults: {},
+    presetDefaults: {
+      hooks: {
+        presetDefaults: {
+          subscribe: () => () => undefined,
+          getSnapshot: () => ({
+            status: 'ready',
+            error: null,
+            rows: [{ id: 'standard', name: 'Standard' }],
+            current: '',
+          }),
+        },
+      },
+      load: vi.fn(),
+      select: vi.fn(),
+    },
   };
   return renderToStaticMarkup(createElement(ConfigPage, props as never));
 }
@@ -189,6 +204,10 @@ describe('配置页', () => {
     expect(groups).toEqual(['sessionModel', ...Object.keys(TOOL_GROUPS)]);
     expect(html).toContain(zh['config.group.sessionModel']);
     expect(html).toContain(zh['config.sessionModel.label']);
+    expect(html).toContain(zh['config.sessionPreset.label']);
+    expect(html).toContain(zh['config.sessionPreset.description']);
+    expect(html).toContain('data-dsh-meta-tools-preset="default"');
+    expect(html).toContain('跟随宿主默认');
     expect(html).toContain('官方模型选择器');
     expect(html).not.toContain('智能体团队协作');
     expect(html).not.toContain('agent team');

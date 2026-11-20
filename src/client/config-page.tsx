@@ -17,11 +17,16 @@ import { TOOL_GROUPS, type ToolGroup, type ToolName } from '../constants.ts';
 import type { ConfigPageInjected } from './config-form.ts';
 import type { MetaToolsKey, NS } from './locales.ts';
 import type { ModelDefaultsInjected } from './model-defaults.ts';
+import type { PresetDefaultsInjected } from './preset-defaults.ts';
+import { PresetSelect } from './preset-select.tsx';
 
 /** 配置页组件 props：行配置页的运行时值、字典、默认模型与注入面。 */
 export type ConfigPageProps = PropsRuntime<'plugins.row.config'> &
   PropsLocale<typeof NS> &
-  InjectFace<ConfigPageInjected> & { modelDefaults: ModelDefaultsInjected };
+  InjectFace<ConfigPageInjected> & {
+    modelDefaults: ModelDefaultsInjected;
+    presetDefaults: PresetDefaultsInjected;
+  };
 
 /** 每个工具的标签键与说明键。 */
 const TOOL_TEXT = {
@@ -102,6 +107,13 @@ export function ConfigPage(props: ConfigPageProps) {
             />
           </div>
           <p style={modelDescriptionStyle}>{t('config.sessionModel.description')}</p>
+        </div>
+        <div data-dsh-meta-tools-preset="default" style={modelRowStyle}>
+          <span style={labelStyle}>{t('config.sessionPreset.label')}</span>
+          <div style={modelSelectorStyle}>
+            <PresetSelect {...props.presetDefaults} locked={disabled} t={t} />
+          </div>
+          <p style={modelDescriptionStyle}>{t('config.sessionPreset.description')}</p>
         </div>
       </section>
       {GROUPS.map((group) => (

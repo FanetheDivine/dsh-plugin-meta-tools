@@ -246,6 +246,17 @@ export function makeClientCtx() {
           },
         }),
       },
+      agentPresets: {
+        list: async () => ({
+          ok: true,
+          value: {
+            presets: [
+              { id: 'standard', name: 'Standard', isDefault: true },
+              { id: 'cordis', name: 'Creator' },
+            ],
+          },
+        }),
+      },
     },
     configForms: {
       get(entryId: string) {

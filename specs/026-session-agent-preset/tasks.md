@@ -38,13 +38,13 @@
 
 **Independent Test**: 打开配置页检查两行文案与位置，选择预设并保存，重开配置页选择保持。
 
-- [ ] T009 [P] [US1] 在 `tests/preset-defaults.test.ts` 增加名册读取、选择写入草稿、未选择与卸载测试
-- [ ] T010 [US1] 在 `src/client/preset-defaults.ts` 实现名册读取与草稿投影：`ctx.remote.agentPresets.list()`、当前值与可用性、`load` 与 `select`
-- [ ] T011 [P] [US1] 在 `tests/client.test.ts` 增加“模型”标签、预设行文案、select 触发器与菜单首项断言
-- [ ] T012 [US1] 在 `src/client/preset-select.tsx` 用 `Menu` 实现触发器与菜单：首项“跟随宿主默认”，其后可用预设，`selectedId` 取配置值
-- [ ] T013 [US1] 在 `src/client/config-page.tsx` 把模型标签改为“模型”，并在模型行下方渲染预设行；在 `src/client/index.ts` 接线 `PresetDefaults`
-- [ ] T014 [US1] 在 `src/client/locales.ts` 增加中英文预设文案，并把 `config.sessionModel.label` 改为“模型”/“Model”
-- [ ] T015 [US1] 运行聚焦测试、`pnpm format` 与 `pnpm check`，确认通过后提交 Phase 3
+- [X] T009 [P] [US1] 在 `tests/preset-defaults.test.ts` 增加名册读取、选择写入草稿、未选择与卸载测试
+- [X] T010 [US1] 在 `src/client/preset-defaults.ts` 实现名册读取与草稿投影：`ctx.remote.agentPresets.list()`、当前值与可用性、`load` 与 `select`
+- [X] T011 [P] [US1] 在 `tests/client.test.ts` 增加“模型”标签、预设行文案、select 触发器与菜单首项断言
+- [X] T012 [US1] 在 `src/client/preset-select.tsx` 用 `Menu` 实现触发器与菜单：首项“跟随宿主默认”，其后可用预设，`selectedId` 取配置值
+- [X] T013 [US1] 在 `src/client/config-page.tsx` 把模型标签改为“模型”，并在模型行下方渲染预设行；在 `src/client/index.ts` 接线 `PresetDefaults`
+- [X] T014 [US1] 在 `src/client/locales.ts` 增加中英文预设文案，并把 `config.sessionModel.label` 改为“模型”/“Model”
+- [X] T015 [US1] 运行聚焦测试、`pnpm format` 与 `pnpm check`，确认通过后提交 Phase 3
 
 ## Phase 4: User Story 2 - 新建会话应用默认预设 (Priority: P2)
 
