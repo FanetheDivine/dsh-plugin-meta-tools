@@ -8,7 +8,7 @@ import {
   type MenuEntry,
 } from '@deepseek-ai/dsh-client-ui-primitives';
 import type { TranslateNS } from '@deepseek-ai/dsh-client-ui-slots';
-import { useRef, useState, useSyncExternalStore } from 'react';
+import { useEffect, useRef, useState, useSyncExternalStore } from 'react';
 import type { NS } from './locales.ts';
 import type { PresetDefaultsInjected, PresetDefaultsState } from './preset-defaults.ts';
 import css from './preset-select.module.css';
@@ -67,6 +67,11 @@ export function PresetSelect({ hooks, load, select, locked, t }: PresetSelectPro
   const [open, setOpen] = useState(false);
   const triggerRef = useRef<HTMLButtonElement | null>(null);
   const editable = !locked && state.status === 'ready';
+
+  // 名册需要连接就绪后才能读取，因此在配置页挂载时加载一次。
+  useEffect(() => {
+    load();
+  }, [load]);
 
   return (
     <>

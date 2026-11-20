@@ -96,7 +96,7 @@ dsh plugin add dsh-plugin-meta-tools
 | 文件 | 覆盖内容 |
 | --- | --- |
 | `tests/plugin.test.ts` | 入口契约、开关注册与注销、可选服务缺失与晚到、热重载 |
-| `tests/config.test.ts` | 十一个配置键的默认值、严格校验、冻结与实时读取 |
+| `tests/config.test.ts` | 十一个开关与默认配置键的默认值、严格校验、冻结与实时读取 |
 | `tests/workspace-tools.test.ts` | 四个工作区工具的成功、错误与渲染 |
 | `tests/session-tools.test.ts` | `session_list` 的筛选、分页、标题查询、调用方排除与 subagent 归并 |
 | `tests/session-log.test.ts` | `session_get` 的会话树、JSONL 内容、临时目录与落盘屏障 |
@@ -104,6 +104,8 @@ dsh plugin add dsh-plugin-meta-tools
 | `tests/contract.test.ts` | 十一个工具的名称、说明、参数与输出 schema |
 | `tests/config-form.test.ts` | 配置页草稿、保存、恢复默认与卸载 |
 | `tests/model-defaults.test.ts` | 默认模型目录、草稿选择、错误状态与卸载 |
+| `tests/preset-defaults.test.ts` | 默认预设名册、草稿选择、不可用与重试状态 |
+| `tests/preset-select.test.ts` | 预设选择器文案、菜单顺序与不可用标注 |
 | `tests/client.test.ts` | 字典键集与空文案、配置页槽位注册与渲染 |
 | `tests/client-bundle.test.ts` | `dist/client.js` 的注册契约与导出（产物测试） |
 | `tests/package-pack.test.ts` | npm 包只含发布所需文件，含前端产物与元数据资源（产物测试） |
@@ -189,7 +191,7 @@ locale/                     # 插件页标题、描述与详情
 icon.svg                    # 插件图标
 src/
 ├── index.ts                # 打包入口：name、inject、apply、Config 与工具组接线
-├── config.ts               # 十一个开关的 Config schema、默认值、严格校验与热重载读取
+├── config.ts               # 开关与默认模型/预设的 Config schema、默认值、严格校验与热重载读取
 ├── constants.ts            # 插件标识、工具名、能力分组与结果上限
 ├── types.ts                # 宿主类型再导出与工作区/会话服务契约
 ├── utils.ts                # 对象判断、时间格式化与数值夹取
@@ -199,8 +201,11 @@ src/
 ├── session-ops.ts          # 新建、停止、发送、置顶与归档
 └── client/
     ├── index.ts            # 浏览器入口：注册字典与配置页
-    ├── config-form.ts      # 十一个开关的草稿模型与行键
+    ├── config-form.ts      # 开关与默认配置的草稿模型与行键
     ├── config-page.tsx     # 配置页的 summary 与 page 视图
+    ├── model-defaults.ts   # 默认模型目录与草稿选择
+    ├── preset-defaults.ts  # 默认预设名册与草稿选择
+    ├── preset-select.tsx   # 预设选择器触发器与官方 Menu
     └── locales.ts          # 配置页中英文字典
 dist/                       # 构建产物
 scripts/release-archive.mjs # 发布时归档 CHANGELOG

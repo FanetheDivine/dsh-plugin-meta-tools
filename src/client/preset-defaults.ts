@@ -40,29 +40,21 @@ type RosterRead =
   | { ok: false; error: { readonly code: string; readonly message: string } };
 
 /** 浏览器侧的预设目录远程命名空间。 */
-interface PresetRemoteLike {
+export interface PresetRemoteLike {
   list(): Promise<RosterRead>;
-}
-
-/** 读取 `ctx.remote.agentPresets`；宿主未提供时返回 undefined。 */
-function presetRemote(ctx: Context): PresetRemoteLike | undefined {
-  const remote = (ctx.remote as unknown as { agentPresets?: Partial<PresetRemoteLike> })
-    .agentPresets;
-  return remote !== undefined && typeof remote.list === 'function'
-    ? (remote as PresetRemoteLike)
-    : undefined;
 }
 
 /** 保存名册、配置草稿与选择器共享状态的订阅。 */
 export class PresetDefaults {
   private readonly store: SnapshotStore<PresetDefaultsState> = createSnapshotStore({
-    status: 'loading',
+    status: 'noService',
     error: null,
     rows: [],
     current: '',
   });
   private readonly disposers: Array<() => void> = [];
   private reading = false;
+  private remote: PresetRemoteLike | undefined;
 
   /**
    * @param ctx - 前端根上下文，提供预设名册与连接事件。
@@ -70,13 +62,21 @@ export class PresetDefaults {
    * @param edit - 配置页草稿编辑动作。
    */
   constructor(
-    private readonly ctx: Context,
+    ctx: Context,
     private readonly form: SnapshotStore<ConfigFormState>,
     private readonly edit: (field: string, text: string) => void,
+    remote?: PresetRemoteLike,
   ) {
+    this.remote = remote;
     this.disposers.push(form.subscribe(() => this.sync()));
-    this.disposers.push(ctx.on('connection/reset', () => this.load()));
+    this.disposers.push(ctx.on('connection/reset', () => this.load(true)));
     this.sync();
+  }
+
+  /** 宿主预设服务就绪后接入名册，并读取一次。 */
+  attach(remote: PresetRemoteLike): void {
+    this.remote = remote;
+    void this.load();
   }
 
   /** @returns 配置页选择器的注入值。 */
@@ -94,9 +94,10 @@ export class PresetDefaults {
   }
 
   /** 读取宿主的可用预设；失败时保留已保存值。 */
-  async load(): Promise<void> {
+  async load(force = false): Promise<void> {
     if (this.reading) return;
-    const remote = presetRemote(this.ctx);
+    if (!force && this.store.getSnapshot().status === 'ready') return;
+    const remote = this.remote;
     if (remote === undefined) {
       this.store.update((state) => {
         state.status = 'noService';

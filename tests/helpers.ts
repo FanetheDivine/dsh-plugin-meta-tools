@@ -221,6 +221,9 @@ export function makeClientCtx() {
     on(_type: string, _fn: (...args: unknown[]) => unknown) {
       return noop;
     },
+    inject(_names: string[], _callback: (scoped: unknown) => unknown) {
+      return noop;
+    },
     locale: {
       register(ns: string, dicts: Record<string, Record<string, string>>) {
         state._localeRegistrations.push({ ns, dicts });

@@ -13,7 +13,12 @@ function setup() {
   const scope = makeConfigFormScope<ConfigFields>({ value: { ...DEFAULT_CONFIG } });
   const form = new PluginConfigForm(scope.scope);
   const actions = form.inject();
-  const defaults = new PresetDefaults(ctx, actions.hooks.configForm, actions.edit);
+  const defaults = new PresetDefaults(
+    ctx,
+    actions.hooks.configForm,
+    actions.edit,
+    ctx.remote.agentPresets,
+  );
   return { ctx, scope, form, actions, defaults, presets };
 }
 
@@ -37,8 +42,11 @@ describe('预设目录', () => {
   });
 
   it('没有预设服务时进入 noService', async () => {
-    const { ctx, defaults } = setup();
-    delete (ctx.remote as unknown as { agentPresets?: unknown }).agentPresets;
+    const ctx = makeClientCtx();
+    const scope = makeConfigFormScope<ConfigFields>({ value: { ...DEFAULT_CONFIG } });
+    const form = new PluginConfigForm(scope.scope);
+    const actions = form.inject();
+    const defaults = new PresetDefaults(ctx, actions.hooks.configForm, actions.edit);
     await defaults.load();
 
     expect(defaults.inject().hooks.presetDefaults.getSnapshot().status).toBe('noService');

@@ -72,12 +72,12 @@
 
 ## Phase 6: Polish & Cross-Cutting Concerns
 
-- [ ] T026 [P] 更新 `README.md`，说明配置页“模型”与“预设”、默认预设与单次覆盖
-- [ ] T027 [P] 更新 `docs/how-it-works.md` 与 `docs/development.md` 的配置键、预设解析顺序与测试地图
-- [ ] T028 [P] 更新 `docs/known-risks.md` 与 `CHANGELOG.md` 的宿主名册接口、rc.5 升级风险与回退边界
-- [ ] T029 按 `specs/026-session-agent-preset/quickstart.md` 运行 `pnpm format && pnpm check && pnpm full-check`
-- [ ] T030 按 `specs/026-session-agent-preset/quickstart.md` 在真实 DSH 验证两行文案、菜单键盘操作、浮层位置、保存与新建会话预设
-- [ ] T031 审查 `src/`、`tests/`、`docs/`、`README.md`、`CHANGELOG.md` 与构建配置的最终差异，提交 Phase 6
+- [X] T026 [P] 更新 `README.md`，说明配置页“模型”与“预设”、默认预设与单次覆盖
+- [X] T027 [P] 更新 `docs/how-it-works.md` 与 `docs/development.md` 的配置键、预设解析顺序与测试地图
+- [X] T028 [P] 更新 `docs/known-risks.md` 与 `CHANGELOG.md` 的宿主名册接口、rc.5 升级风险与回退边界
+- [X] T029 按 `specs/026-session-agent-preset/quickstart.md` 运行 `pnpm format && pnpm check && pnpm full-check`
+- [X] T030 按 `specs/026-session-agent-preset/quickstart.md` 在真实 DSH 验证两行文案、菜单键盘操作、浮层位置、保存与新建会话预设
+- [X] T031 审查 `src/`、`tests/`、`docs/`、`README.md`、`CHANGELOG.md` 与构建配置的最终差异，提交 Phase 6
 
 ## Dependencies & Execution Order
 
