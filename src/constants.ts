@@ -47,6 +47,18 @@ export const SESSION_MODEL_CONFIG_KEYS = [
 /** 默认模型配置键联合类型。 */
 export type SessionModelConfigKey = (typeof SESSION_MODEL_CONFIG_KEYS)[number];
 
+/** 新增会话默认预设的配置键。 */
+export const SESSION_PRESET_CONFIG_KEYS = ['session_preset'] as const;
+
+/** 新增会话默认配置键：默认模型与默认预设。 */
+export const SESSION_DEFAULT_CONFIG_KEYS = [
+  ...SESSION_MODEL_CONFIG_KEYS,
+  ...SESSION_PRESET_CONFIG_KEYS,
+] as const;
+
+/** 默认配置键联合类型。 */
+export type SessionDefaultConfigKey = (typeof SESSION_DEFAULT_CONFIG_KEYS)[number];
+
 /** 配置页的能力分组：工作区、查看会话、管理会话；按顺序拼接后等于 TOOL_NAMES。 */
 export const TOOL_GROUPS = {
   workspace: WORKSPACE_TOOL_NAMES,

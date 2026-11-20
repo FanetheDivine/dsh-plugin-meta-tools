@@ -14,6 +14,7 @@ import { type ConfigFields, PluginConfigForm, ROW_ID, ROW_KEY } from './config-f
 import { ConfigPage } from './config-page.tsx';
 import { en, NS, zh } from './locales.ts';
 import { ModelDefaults } from './model-defaults.ts';
+import { PresetDefaults, type PresetRemoteLike } from './preset-defaults.ts';
 
 /** 需要宿主注入的客户端服务。 */
 export const inject = ['slots', 'locale', 'configForms', 'remote', 'remote.session'];
@@ -26,11 +27,18 @@ export function apply(ctx: Context): void {
   const form = new PluginConfigForm(ctx.configForms.get<ConfigFields>(ROW_ID));
   const injected = form.inject();
   const models = new ModelDefaults(ctx, injected.hooks.configForm, injected.edit);
+  const presets = new PresetDefaults(ctx, injected.hooks.configForm, injected.edit);
+  // 预设服务是可选依赖：就绪后接入，缺失时选择器保持禁用。
+  ctx.inject(['remote.agentPresets'], (scoped) => {
+    const remote = (scoped.remote as unknown as { agentPresets?: PresetRemoteLike }).agentPresets;
+    if (remote !== undefined && typeof remote.list === 'function') presets.attach(remote);
+  });
   const modelT = ctx.locale.bind('model');
   ctx.effect(
     () => () => {
       form.dispose();
       models.dispose();
+      presets.dispose();
     },
     'dsh-plugin-meta-tools: config form',
   );
@@ -43,6 +51,7 @@ export function apply(ctx: Context): void {
         inject: () => ({
           ...injected,
           modelDefaults: models.inject(modelT, (text) => ctx.locale.resolveText(text)),
+          presetDefaults: presets.inject(),
         }),
       },
       ConfigPage,

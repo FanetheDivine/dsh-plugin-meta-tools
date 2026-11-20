@@ -9,6 +9,7 @@ import { PLUGIN_LABEL } from './constants.ts';
 
 import type {
   Agent,
+  AgentPresetsLike,
   LlmLike,
   ModelSelection,
   SessionControllerLike,
@@ -27,6 +28,10 @@ export interface SessionControlDeps {
   llm?: LlmLike;
   /** 插件保存的默认模型；工具显式参数优先。 */
   defaultModel?: ModelSelection;
+  /** 插件保存的默认预设；工具显式参数优先。 */
+  defaultPreset?: string;
+  /** 宿主预设注册表；只用于校验默认预设是否可用。 */
+  agentPresets?: AgentPresetsLike;
 }
 
 /** 会话导航工具依赖。 */
@@ -132,6 +137,20 @@ function subagentsOf(agent: Agent | undefined): SubagentsLike | undefined {
   return agent?.ctx.get('subagents') as SubagentsLike | undefined;
 }
 
+/** 在宿主可用预设中匹配默认预设；不可用或读取失败时返回空。 */
+async function availablePreset(
+  presets: AgentPresetsLike | undefined,
+  candidate: string | undefined,
+): Promise<string> {
+  if (presets === undefined || candidate === undefined || candidate === '') return '';
+  try {
+    const rows = await presets.list();
+    return rows.some((row) => row.id === candidate && row.broken === undefined) ? candidate : '';
+  } catch {
+    return '';
+  }
+}
+
 /** 渲染单个会话操作结果。 */
 function renderOne(verb: string, id: string): { type: 'text'; text: string }[] {
   return [{ type: 'text', text: `${verb} ${id}` }];
@@ -139,11 +158,11 @@ function renderOne(verb: string, id: string): { type: 'text'; text: string }[] {
 
 /** 构建新建会话工具。 */
 export function buildSessionCreateTool(deps: SessionControlDeps): ToolDefinition {
-  const { sessionController, llm, defaultModel } = deps;
+  const { sessionController, llm, defaultModel, defaultPreset, agentPresets } = deps;
   return defineTool({
     name: 'session_create',
     description:
-      'Create a DSH (DeepSeek Harness) session, optionally in a workspace or directory, with an agent preset, an optional provider/model/effort selection, a title, and a first prompt. Returns the new session id.',
+      'Create a DSH (DeepSeek Harness) session, optionally in a workspace or directory, with an agent preset, an optional provider/model/effort selection, a title, and a first prompt. The preset defaults to the plugin default when the host offers it, otherwise to the deployment default. Returns the new session id.',
     parameters: {
       workspace_id: {
         type: 'string',
@@ -156,7 +175,8 @@ export function buildSessionCreateTool(deps: SessionControlDeps): ToolDefinition
       },
       agent_preset: {
         type: 'string',
-        description: 'Agent preset the session runs. Defaults to the deployment default.',
+        description:
+          'Agent preset the session runs. Defaults to the plugin default when the host offers it, otherwise to the deployment default.',
       },
       provider: {
         type: 'string',
@@ -195,7 +215,9 @@ export function buildSessionCreateTool(deps: SessionControlDeps): ToolDefinition
       if (workspaceId !== '' && cwd !== '') {
         throw new ToolArgsError(['workspace_id and cwd are mutually exclusive']);
       }
-      const agentPreset = typeof args.agent_preset === 'string' ? args.agent_preset.trim() : '';
+      const explicitPreset = typeof args.agent_preset === 'string' ? args.agent_preset.trim() : '';
+      const agentPreset =
+        explicitPreset === '' ? await availablePreset(agentPresets, defaultPreset) : explicitPreset;
       const selection = modelSelectionOf(args.provider, args.model, args.effort) ?? defaultModel;
       if (selection !== undefined) {
         if (llm === undefined) {

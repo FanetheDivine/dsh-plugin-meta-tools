@@ -1,6 +1,6 @@
 /**
- * 插件配置：十一个工具开关、三个默认模型字符串、默认值与严格校验。
- * 导出 Config、PluginConfig、DEFAULT_CONFIG、resolveConfig、readConfig 与 sessionModelSelection。
+ * 插件配置：十一个工具开关、三个默认模型字符串、一个默认预设字符串、默认值与严格校验。
+ * 导出 Config、PluginConfig、DEFAULT_CONFIG、resolveConfig、readConfig、sessionModelSelection 与 sessionPreset。
  */
 import { ReasoningEffortId } from '@deepseek-ai/dsh-llm';
 import Schema from '@deepseek-ai/schemastery';
@@ -8,8 +8,8 @@ import Schema from '@deepseek-ai/schemastery';
 import {
   DEFAULT_SWITCH,
   PLUGIN_LABEL,
-  SESSION_MODEL_CONFIG_KEYS,
-  type SessionModelConfigKey,
+  SESSION_DEFAULT_CONFIG_KEYS,
+  type SessionDefaultConfigKey,
   TOOL_NAMES,
   type ToolName,
 } from './constants.ts';
@@ -46,6 +46,8 @@ export interface Config {
   session_model: Volatile<string>;
   /** 新增会话的默认推理等级；非空时要求默认 provider 与 model 非空。 */
   session_effort: Volatile<string>;
+  /** 新增会话的默认预设；空值表示跟随宿主默认。 */
+  session_preset: Volatile<string>;
 }
 
 /**
@@ -67,11 +69,12 @@ export const Config: Schema<Config> = Schema.object({
   session_provider: Schema.string().default('').volatile(),
   session_model: Schema.string().default('').volatile(),
   session_effort: Schema.string().default('').volatile(),
+  session_preset: Schema.string().default('').volatile(),
 }) as unknown as Schema<Config>;
 
-/** 配置项的实时取值：工具开关与默认模型字符串。 */
+/** 配置项的实时取值：工具开关、默认模型字符串与默认预设字符串。 */
 export type PluginConfig = { [K in ToolName]: boolean } & {
-  [K in SessionModelConfigKey]: string;
+  [K in SessionDefaultConfigKey]: string;
 };
 
 /** 默认配置：十一个工具全部开启。 */
@@ -90,10 +93,11 @@ export const DEFAULT_CONFIG: Readonly<PluginConfig> = Object.freeze({
   session_provider: '',
   session_model: '',
   session_effort: '',
+  session_preset: '',
 });
 
-/** 合法的配置键：工具名与默认模型字段。 */
-const CONFIG_KEYS = new Set<string>([...TOOL_NAMES, ...SESSION_MODEL_CONFIG_KEYS]);
+/** 合法的配置键：工具名与默认配置字段。 */
+const CONFIG_KEYS = new Set<string>([...TOOL_NAMES, ...SESSION_DEFAULT_CONFIG_KEYS]);
 
 /** 把缺省或 null 的输入转为空对象。 */
 function normalizeConfigInput(raw: unknown): Record<string, unknown> {
@@ -117,7 +121,7 @@ export function resolveConfig(raw?: unknown): Readonly<PluginConfig> {
     }
     config[name] = value;
   }
-  for (const name of SESSION_MODEL_CONFIG_KEYS) {
+  for (const name of SESSION_DEFAULT_CONFIG_KEYS) {
     const value = input[name];
     if (value === undefined || value === null) continue;
     if (typeof value !== 'string') {
@@ -152,6 +156,12 @@ export function sessionModelSelection(config: Readonly<PluginConfig>): ModelSele
     model,
     ...(effort === '' ? {} : { reasoningEffort: ReasoningEffortId(effort) }),
   };
+}
+
+/** 读取配置中的默认预设；未配置时返回 undefined。 */
+export function sessionPreset(config: Readonly<PluginConfig>): string | undefined {
+  const preset = config.session_preset.trim();
+  return preset === '' ? undefined : preset;
 }
 
 /** 判断值是否是热重载引用。 */

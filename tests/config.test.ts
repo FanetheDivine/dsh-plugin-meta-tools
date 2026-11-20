@@ -7,8 +7,9 @@ import {
   readConfig,
   resolveConfig,
   sessionModelSelection,
+  sessionPreset,
 } from '../src/config.ts';
-import { PLUGIN_LABEL, SESSION_MODEL_CONFIG_KEYS, TOOL_NAMES } from '../src/constants.ts';
+import { PLUGIN_LABEL, SESSION_DEFAULT_CONFIG_KEYS, TOOL_NAMES } from '../src/constants.ts';
 import { volatile } from './helpers.ts';
 
 /** 十一个键的完整配置。 */
@@ -27,13 +28,14 @@ const ALL_ON = {
   session_provider: '',
   session_model: '',
   session_effort: '',
+  session_preset: '',
 };
 
 describe('默认值', () => {
   it('十一个工具默认开启', () => {
     expect(resolveConfig({})).toEqual(ALL_ON);
     expect(DEFAULT_CONFIG).toEqual(ALL_ON);
-    expect([...TOOL_NAMES, ...SESSION_MODEL_CONFIG_KEYS]).toEqual(Object.keys(ALL_ON));
+    expect([...TOOL_NAMES, ...SESSION_DEFAULT_CONFIG_KEYS]).toEqual(Object.keys(ALL_ON));
   });
 
   it('整份配置留空（undefined/null）时全部用默认值', () => {
@@ -93,6 +95,26 @@ describe('默认模型', () => {
   });
 });
 
+describe('默认预设', () => {
+  it('空配置返回 undefined', () => {
+    expect(sessionPreset(resolveConfig({}))).toBeUndefined();
+  });
+
+  it('读取预设并去除首尾空白', () => {
+    expect(sessionPreset(resolveConfig({ session_preset: ' cordis ' }))).toBe('cordis');
+  });
+
+  it('空白值视为未配置', () => {
+    expect(sessionPreset(resolveConfig({ session_preset: '   ' }))).toBeUndefined();
+  });
+
+  it('非字符串报错', () => {
+    expect(() => resolveConfig({ session_preset: true })).toThrow(
+      `${PLUGIN_LABEL}: config session_preset must be a string`,
+    );
+  });
+});
+
 describe('严格校验', () => {
   it('未知键报错', () => {
     expect(() => resolveConfig({ bogus: true })).toThrow(
@@ -120,6 +142,7 @@ describe('Config schema', () => {
     const parsed = Config({});
     expect(parsed.session_get.get()).toBe(true);
     expect(parsed.workspace_rename.get()).toBe(true);
+    expect(parsed.session_preset.get()).toBe('');
   });
 
   it('schema 拒绝非法类型', () => {

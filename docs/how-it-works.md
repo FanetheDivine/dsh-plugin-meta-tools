@@ -28,6 +28,7 @@ DSH 插件是一个 npm 包。宿主按约定的入口加载宿主部分，按 `
 - 需要热重载的 `Config` 字段用 `.volatile()` 标记。
 - 宿主类型经 `src/types.ts` 以 type-only 方式导入。
 - `workspaceRegistry`、`sessionQuery`、`sessionController`、`sessions` 是可选服务，经 `ctx.inject` 获取。缺少某个服务时，只跳过依赖它的工具，插件照常加载。
+- `agentPresets` 是可选服务：缺失时默认预设按空值处理，新建会话沿用宿主默认。
 - `llm` 是可选模型校验服务。缺少时不影响现有工具，只有指定模型的新建会话会报错。
 
 ## 运行流程
@@ -52,6 +53,7 @@ DSH 插件是一个 npm 包。宿主按约定的入口加载宿主部分，按 `
 
 - 十一个工具开关键与工具名相同，类型为布尔，默认 `true`。
 - `session_provider`、`session_model`、`session_effort` 是新增会话的默认模型字符串，默认空字符串；provider 与 model 必须成对配置，effort 依赖完整路由。
+- `session_preset` 是新增会话的默认预设，默认空字符串；空值表示跟随宿主“新任务默认预设”。
 - 全部字段标记 `.volatile()`：在“插件”页的行配置页保存后，插件不重启，工具按新配置同步。
 - 手写配置示例：
 
@@ -116,8 +118,10 @@ DSH 插件是一个 npm 包。宿主按约定的入口加载宿主部分，按 `
 
 ### 会话操作
 
-- `session_create` 先校验显式 provider/model/effort 或插件默认模型，再调 `sessionController.create`；创建后经 `agent.model.select` 选择会话模型，最后设置标题并投递首条消息。
+- `session_create` 先解析预设：显式 `agent_preset` 优先，否则在 `agentPresets.list()` 的可用行中匹配 `session_preset`，不匹配时按空值。
+- 随后校验显式 provider/model/effort 或插件默认模型，再调 `sessionController.create`；创建后经 `agent.model.select` 选择会话模型，最后设置标题并投递首条消息。
 - 显式工具参数覆盖插件默认模型。模型选择只写入新会话，不调用会保存宿主全局默认的 `sessionController.selectModel`。
+- 插件默认预设只在宿主名册可用时生效；名册读取失败或预设不可用时按空值创建，不阻断会话。
 - `session_stop` 调 `sessionController.cancel`，只取消当前轮次。
 - 插件插话链路用 `createUserMessage` 构造完整消息，来源固定为 `{ kind: 'dsh-plugin-meta-tools' }`，再经 `sessionController.resolveAgent` 取得普通会话 Agent 并调用 `steer`。
 - `session_send` 先把文本包进 `<system-reminder>` 帧并转义正文里的闭合标签，再走同一插件插话链路。
@@ -148,11 +152,12 @@ DSH 插件是一个 npm 包。宿主按约定的入口加载宿主部分，按 `
 - 所有界面文案来自 `src/client/locales.ts`；中文字典是键集事实源，英文字典必须同键，组件只通过 `t(key)` 读取。
 - 元数据资源 `locale/*.json` 供宿主在插件未激活时读取标题与描述；两处的完整规范见 [i18n.md](./i18n.md)。
 - `plugins.row.config` 槽位的键是 `<包名>#<行 id>`，当前两者相同。
-- 表单由 `SettingsFormModel` 暂存十一个开关与三个默认模型字段，`SettingsForm` 与 `Switch` 渲染，只在保存时写一次。
+- 表单由 `SettingsFormModel` 暂存十一个开关、三个默认模型字段与一个默认预设字段，`SettingsForm` 与 `Switch` 渲染，只在保存时写一次。
 - 默认模型复用官方 `ModelSelect` 与 `ModelCatalogDirectory`；`ModelDefaults` 把目录、表单草稿与连接事件投影到同一个快照存储。
+- 默认预设由 `PresetDefaults` 读取 `ctx.remote.agentPresets`，`PresetSelect` 用官方 `Menu` 渲染触发器与浮窗；首项“跟随宿主默认”写回空值。
 - 模型标签通过选择器扩展点在名称前显示 provider，额外选项扩展点返回空内容，因此配置页不提供团队协作开关。
 - 官方 CSS Module 在构建时内联到 `dist/client.js`，运行时以固定 id 注入样式。
-- 开关按 `TOOL_GROUPS` 分为工作区、查看会话、管理会话三组；默认模型位于独立的“新增会话”分组。
+- 开关按 `TOOL_GROUPS` 分为工作区、查看会话、管理会话三组；默认模型与默认预设位于独立的“新增会话”分组。
 - 每个开关行按工具名、功能名称、开关三列排列，说明位于功能名称下方；全部开关竖直对齐。
 - 功能名称同时作为开关的无障碍名称。
 - 控件使用 `--dsw-*` 主题令牌，随明暗主题与语言切换。

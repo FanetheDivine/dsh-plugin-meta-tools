@@ -11,6 +11,7 @@ import {
 } from '../src/session-ops.ts';
 import type {
   Agent,
+  AgentPresetsLike,
   LlmLike,
   SessionAgentResultLike,
   SessionControllerLike,
@@ -70,6 +71,16 @@ function makeLlm() {
   );
   const llm: LlmLike = { resolveCallConfig };
   return { llm, resolveCallConfig };
+}
+
+/** 假预设注册表。 */
+function makeAgentPresets(
+  rows: Array<{ id: string; name?: string; broken?: string }> = [
+    { id: 'standard', name: 'Standard' },
+  ],
+) {
+  const list = vi.fn(async () => rows);
+  return { agentPresets: { list } as AgentPresetsLike, list };
 }
 
 /** 假工作区注册表。 */
@@ -238,6 +249,80 @@ describe('session_create', () => {
       model: 'alpha',
       reasoningEffort: 'high',
     });
+  });
+
+  it('未显式传参时使用名册中的插件默认预设', async () => {
+    const { controller, create } = makeController();
+    const { agentPresets } = makeAgentPresets();
+    const tool = buildSessionCreateTool({
+      sessionController: controller,
+      agentPresets,
+      defaultPreset: 'standard',
+    });
+
+    const value = (await tool.execute({}, exec)) as { agentPreset?: string };
+
+    expect(create).toHaveBeenCalledWith({ agentPreset: 'standard' });
+    expect(value.agentPreset).toBe('standard');
+  });
+
+  it('显式预设覆盖插件默认值且不读取名册', async () => {
+    const { controller, create } = makeController();
+    const { agentPresets, list } = makeAgentPresets();
+    const tool = buildSessionCreateTool({
+      sessionController: controller,
+      agentPresets,
+      defaultPreset: 'standard',
+    });
+
+    await tool.execute({ agent_preset: ' cordis ' }, exec);
+
+    expect(create).toHaveBeenCalledWith({ agentPreset: 'cordis' });
+    expect(list).not.toHaveBeenCalled();
+  });
+
+  it.each([
+    { label: '不在名册', rows: [{ id: 'standard' }], candidate: 'gone' },
+    { label: '标记损坏', rows: [{ id: 'gone', broken: 'missing' }], candidate: 'gone' },
+  ])('插件默认预设不可用时按空值创建：$label', async ({ rows, candidate }) => {
+    const { controller, create } = makeController();
+    const { agentPresets } = makeAgentPresets(rows);
+    const tool = buildSessionCreateTool({
+      sessionController: controller,
+      agentPresets,
+      defaultPreset: candidate,
+    });
+
+    await tool.execute({}, exec);
+
+    expect(create).toHaveBeenCalledWith({});
+  });
+
+  it('名册读取失败时按空值创建', async () => {
+    const { controller, create } = makeController();
+    const { agentPresets, list } = makeAgentPresets();
+    list.mockRejectedValue(new Error('roster offline'));
+    const tool = buildSessionCreateTool({
+      sessionController: controller,
+      agentPresets,
+      defaultPreset: 'standard',
+    });
+
+    await tool.execute({}, exec);
+
+    expect(create).toHaveBeenCalledWith({});
+  });
+
+  it('没有预设服务时按空值创建', async () => {
+    const { controller, create } = makeController();
+    const tool = buildSessionCreateTool({
+      sessionController: controller,
+      defaultPreset: 'standard',
+    });
+
+    await tool.execute({}, exec);
+
+    expect(create).toHaveBeenCalledWith({});
   });
 
   it('显式工具参数覆盖插件默认模型且不与默认 effort 合并', async () => {

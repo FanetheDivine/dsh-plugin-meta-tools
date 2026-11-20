@@ -221,6 +221,9 @@ export function makeClientCtx() {
     on(_type: string, _fn: (...args: unknown[]) => unknown) {
       return noop;
     },
+    inject(_names: string[], _callback: (scoped: unknown) => unknown) {
+      return noop;
+    },
     locale: {
       register(ns: string, dicts: Record<string, Record<string, string>>) {
         state._localeRegistrations.push({ ns, dicts });
@@ -246,6 +249,17 @@ export function makeClientCtx() {
           },
         }),
       },
+      agentPresets: {
+        list: async () => ({
+          ok: true,
+          value: {
+            presets: [
+              { id: 'standard', name: 'Standard', isDefault: true },
+              { id: 'cordis', name: 'Creator' },
+            ],
+          },
+        }),
+      },
     },
     configForms: {
       get(entryId: string) {
@@ -267,6 +281,7 @@ export function makeClientCtx() {
             session_provider: '',
             session_model: '',
             session_effort: '',
+            session_preset: '',
           },
         });
         state._configFormScopes.push(fake);

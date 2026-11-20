@@ -32,7 +32,7 @@ const DESCRIPTIONS: Record<string, string> = {
   session_get:
     'Export one DSH (DeepSeek Harness) session log to a temporary directory and return the written file paths. The export contains the main session and one log per subagent session. Each file is JSONL: a header line followed by one event per line. Read the returned files to inspect the session.',
   session_create:
-    'Create a DSH (DeepSeek Harness) session, optionally in a workspace or directory, with an agent preset, an optional provider/model/effort selection, a title, and a first prompt. Returns the new session id.',
+    'Create a DSH (DeepSeek Harness) session, optionally in a workspace or directory, with an agent preset, an optional provider/model/effort selection, a title, and a first prompt. The preset defaults to the plugin default when the host offers it, otherwise to the deployment default. Returns the new session id.',
   session_stop:
     'Cancel the current turn of one DSH (DeepSeek Harness) session without dropping its pending messages.',
   session_send:
@@ -120,6 +120,11 @@ describe('工具契约', () => {
     });
     expect(property(tools.session_get, 'session_id')).toMatchObject({ type: 'string' });
     expect(property(tools.session_create, 'cwd')).toMatchObject({ type: 'string' });
+    expect(property(tools.session_create, 'agent_preset')).toMatchObject({
+      type: 'string',
+      description:
+        'Agent preset the session runs. Defaults to the plugin default when the host offers it, otherwise to the deployment default.',
+    });
     expect(property(tools.session_create, 'provider')).toMatchObject({
       type: 'string',
       description: 'Provider id. Required together with model when selecting a model.',
