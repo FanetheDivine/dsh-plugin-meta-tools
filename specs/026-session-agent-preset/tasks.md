@@ -52,11 +52,11 @@
 
 **Independent Test**: 三种状态下新建会话，检查会话记录的预设；配置值不可用时回退宿主默认。
 
-- [ ] T016 [P] [US2] 在 `tests/session-ops.test.ts` 增加显式优先、配置命中、配置不可用回退、名册读取失败回退与未配置兼容测试
-- [ ] T017 [US2] 在 `src/session-ops.ts` 的 `SessionControlDeps` 增加可选 `agentPresets`，实现预设解析：显式值直接使用；配置值在可用名册中才使用；其余按空值；只传最终结果给 `sessionController.create`
-- [ ] T018 [US2] 在 `src/index.ts` 从 `ctx.get('agentPresets')` 取服务并传给 `session_create`，保持工具注册条件不变
-- [ ] T019 [P] [US2] 在 `tests/plugin.test.ts` 增加宿主预设服务到 `session_create` 的接线测试
-- [ ] T020 [US2] 运行聚焦测试、`pnpm format` 与 `pnpm check`，确认通过后提交 Phase 4
+- [X] T016 [P] [US2] 在 `tests/session-ops.test.ts` 增加显式优先、配置命中、配置不可用回退、名册读取失败回退与未配置兼容测试
+- [X] T017 [US2] 在 `src/session-ops.ts` 的 `SessionControlDeps` 增加可选 `agentPresets`，实现预设解析：显式值直接使用；配置值在可用名册中才使用；其余按空值；只传最终结果给 `sessionController.create`
+- [X] T018 [US2] 在 `src/index.ts` 从 `ctx.get('agentPresets')` 取服务并传给 `session_create`，保持工具注册条件不变
+- [X] T019 [P] [US2] 在 `tests/plugin.test.ts` 增加宿主预设服务到 `session_create` 的接线测试
+- [X] T020 [US2] 运行聚焦测试、`pnpm format` 与 `pnpm check`，确认通过后提交 Phase 4
 
 ## Phase 5: User Story 3 - 不可用状态与降级 (Priority: P3)
 
@@ -64,11 +64,11 @@
 
 **Independent Test**: 分别制造名册失败、无服务与已保存值损坏，检查触发器、说明与重试。
 
-- [ ] T021 [P] [US3] 在 `tests/preset-defaults.test.ts` 增加加载失败、无服务、已保存值不可用与重试测试
-- [ ] T022 [P] [US3] 在 `tests/client.test.ts` 增加触发器禁用、不可用标注与说明文案断言
-- [ ] T023 [US3] 在 `src/client/preset-defaults.ts` 与 `src/client/preset-select.tsx` 实现 loading/ready/unavailable/noService/error 状态与重试，保留已保存值
-- [ ] T024 [US3] 在 `src/client/locales.ts` 增加加载中、失败、重试、不可用与无预设能力文案；在 `src/client/index.ts` 监听连接重置刷新名册
-- [ ] T025 [US3] 运行聚焦测试、`pnpm format` 与 `pnpm check`，确认通过后提交 Phase 5
+- [X] T021 [P] [US3] 在 `tests/preset-defaults.test.ts` 增加加载失败、无服务、已保存值不可用与重试测试
+- [X] T022 [P] [US3] 在 `tests/client.test.ts` 增加触发器禁用、不可用标注与说明文案断言
+- [X] T023 [US3] 在 `src/client/preset-defaults.ts` 与 `src/client/preset-select.tsx` 实现 loading/ready/unavailable/noService/error 状态与重试，保留已保存值
+- [X] T024 [US3] 在 `src/client/locales.ts` 增加加载中、失败、重试、不可用与无预设能力文案；在 `src/client/index.ts` 监听连接重置刷新名册
+- [X] T025 [US3] 运行聚焦测试、`pnpm format` 与 `pnpm check`，确认通过后提交 Phase 5
 
 ## Phase 6: Polish & Cross-Cutting Concerns
 

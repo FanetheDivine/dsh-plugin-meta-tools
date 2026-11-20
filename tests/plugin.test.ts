@@ -183,6 +183,30 @@ describe('apply 接线', () => {
     expect(create).toHaveBeenCalledWith({});
   });
 
+  it('session_create 从宿主名册校验默认预设', async () => {
+    const ctx = makeCtx();
+    const create = vi.fn(async (request: { agentPreset?: string }) => ({
+      sessionId: 's-new',
+      ...(request.agentPreset === undefined ? {} : { agentPreset: request.agentPreset }),
+    }));
+    const list = vi.fn(async () => [
+      { id: 'standard', name: 'Standard' },
+      { id: 'gone', broken: 'missing' },
+    ]);
+    ctx._setService('sessionController', { create });
+    ctx._setService('agentPresets', { list });
+    apply(ctx, { session_preset: 'standard', session_stop: false, session_send: false });
+    const tool = ctx._registeredTools.find(
+      (tool) => tool.name === 'session_create',
+    ) as ToolDefinition;
+
+    await expect(
+      tool.execute({}, { signal: new AbortController().signal } as never),
+    ).resolves.toMatchObject({ sessionId: 's-new', agentPreset: 'standard' });
+    expect(list).toHaveBeenCalledOnce();
+    expect(create).toHaveBeenCalledWith({ agentPreset: 'standard' });
+  });
+
   it('默认模型配置热更新后用于下一次新建会话', async () => {
     const ctx = makeCtx();
     const create = vi.fn(async () => ({ sessionId: 's-new' }));

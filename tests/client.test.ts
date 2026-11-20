@@ -65,6 +65,12 @@ function renderConfigPage(
   view: 'page' | 'summary',
   dict: Record<string, string>,
   state = pageState(),
+  presetState: {
+    status: string;
+    error: string | null;
+    rows: Array<{ id: string; name?: string }>;
+    current: string;
+  } = { status: 'ready', error: null, rows: [{ id: 'standard', name: 'Standard' }], current: '' },
 ): string {
   const props = {
     view,
@@ -79,12 +85,7 @@ function renderConfigPage(
       hooks: {
         presetDefaults: {
           subscribe: () => () => undefined,
-          getSnapshot: () => ({
-            status: 'ready',
-            error: null,
-            rows: [{ id: 'standard', name: 'Standard' }],
-            current: '',
-          }),
+          getSnapshot: () => presetState,
         },
       },
       load: vi.fn(),
@@ -228,6 +229,28 @@ describe('配置页', () => {
     expect(html.match(/role="switch"/g)).toHaveLength(11);
     expect(html.match(/aria-checked="true"/g)).toHaveLength(11);
     expect(html).toContain('保存');
+  });
+
+  it('预设未就绪时显示失败与重试并禁用触发器', () => {
+    const html = renderConfigPage('page', zh, pageState(), {
+      status: 'error',
+      error: 'roster offline',
+      rows: [],
+      current: '',
+    });
+    expect(html).toContain('预设加载失败');
+    expect(html).toContain('重试');
+    expect(html).toContain('roster offline');
+  });
+
+  it('已保存预设不可用时标注', () => {
+    const html = renderConfigPage('page', zh, pageState(), {
+      status: 'ready',
+      error: null,
+      rows: [{ id: 'standard', name: 'Standard' }],
+      current: 'gone',
+    });
+    expect(html).toContain('gone · 不可用');
   });
 
   it('关闭的开关显示为未选中', () => {

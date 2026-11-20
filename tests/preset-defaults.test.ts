@@ -65,6 +65,29 @@ describe('预设目录', () => {
     expect(state.error).toBe('roster offline');
   });
 
+  it('读取失败后可重试成功', async () => {
+    const { defaults, presets } = setup();
+    presets.mockRejectedValueOnce(new Error('offline'));
+    await defaults.load();
+    expect(defaults.inject().hooks.presetDefaults.getSnapshot().status).toBe('error');
+
+    presets.mockResolvedValue({ ok: true, value: { presets: [{ id: 'standard' }] } });
+    await defaults.load();
+
+    const state = defaults.inject().hooks.presetDefaults.getSnapshot();
+    expect(state.status).toBe('ready');
+    expect(state.rows).toHaveLength(1);
+  });
+
+  it('选择空值回到跟随宿主默认', async () => {
+    const { actions, defaults } = setup();
+    await defaults.load();
+    defaults.inject().select('standard');
+    defaults.inject().select('');
+
+    expect(actions.hooks.configForm.getSnapshot().session_preset.text).toBe('');
+  });
+
   it('选择写入配置草稿', async () => {
     const { actions, defaults } = setup();
     await defaults.load();
